@@ -25,7 +25,7 @@ class AdminCatalogTest extends TestCase
         $this->post(route('admin.categories.store'), [
             'name' => 'Postres',
             'description' => 'Dulces de la casa',
-            'position' => 4,
+            'sort_order' => 4,
             'is_active' => '1',
         ])->assertRedirect(route('admin.categories.index'));
 
@@ -44,14 +44,16 @@ class AdminCatalogTest extends TestCase
             'name' => 'Cafe frio',
             'description' => 'Cafe con leche y hielo',
             'price' => 11000,
-            'position' => 1,
+            'sort_order' => 1,
             'is_available' => '1',
+            'is_featured' => '1',
         ])->assertRedirect(route('admin.products.index'));
 
         $this->assertDatabaseHas('products', [
             'name' => 'Cafe frio',
             'price' => 11000,
             'is_available' => true,
+            'is_featured' => true,
         ]);
     }
 

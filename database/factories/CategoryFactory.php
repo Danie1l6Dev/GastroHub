@@ -14,6 +14,7 @@ class CategoryFactory extends Factory
             'name' => fake()->words(2, true),
             'description' => fake()->sentence(),
             'position' => fake()->numberBetween(0, 20),
+            'sort_order' => fake()->numberBetween(0, 20),
             'is_active' => true,
         ];
     }

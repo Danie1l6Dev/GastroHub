@@ -38,40 +38,53 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
-        $starters = Category::firstOrCreate(
+        $starters = Category::updateOrCreate(
             ['name' => 'Entradas'],
-            ['description' => 'Platos ligeros para compartir.', 'position' => 1, 'is_active' => true]
+            ['slug' => 'entradas', 'description' => 'Platos ligeros para compartir.', 'position' => 1, 'sort_order' => 1, 'is_active' => true]
         );
 
-        $mains = Category::firstOrCreate(
+        $mains = Category::updateOrCreate(
             ['name' => 'Fuertes'],
-            ['description' => 'Opciones principales de la casa.', 'position' => 2, 'is_active' => true]
+            ['slug' => 'fuertes', 'description' => 'Opciones principales de la casa.', 'position' => 2, 'sort_order' => 2, 'is_active' => true]
         );
 
-        $drinks = Category::firstOrCreate(
+        $drinks = Category::updateOrCreate(
             ['name' => 'Bebidas'],
-            ['description' => 'Jugos, sodas y bebidas calientes.', 'position' => 3, 'is_active' => true]
+            ['slug' => 'bebidas', 'description' => 'Jugos, sodas y bebidas calientes.', 'position' => 3, 'sort_order' => 3, 'is_active' => true]
+        );
+
+        $desserts = Category::updateOrCreate(
+            ['name' => 'Postres'],
+            ['slug' => 'postres', 'description' => 'Dulces para cerrar la mesa.', 'position' => 4, 'sort_order' => 4, 'is_active' => true]
         );
 
         $products = [
-            [$starters->id, 'Croquetas de yuca', 'Yuca dorada con salsa cremosa de cilantro.', 18000, 1],
-            [$starters->id, 'Tostadas de maiz', 'Maiz crocante con pico fresco y queso costeno.', 16000, 2],
-            [$mains->id, 'Arroz meloso de mar', 'Arroz cremoso con pesca del dia y vegetales.', 42000, 1],
-            [$mains->id, 'Pollo a la brasa', 'Pollo jugoso con papas rusticas y ensalada.', 36000, 2],
-            [$mains->id, 'Pasta de la casa', 'Pasta corta con tomate asado, albahaca y queso.', 32000, 3],
-            [$drinks->id, 'Limonada de hierbabuena', 'Limonada natural con hielo y hierbabuena.', 9000, 1],
-            [$drinks->id, 'Cafe frio', 'Cafe suave con leche y hielo.', 11000, 2],
+            [$starters->id, 'Croquetas de yuca', 'Yuca dorada con salsa cremosa de cilantro.', 18000, 1, true, true],
+            [$starters->id, 'Tostadas de maiz', 'Maiz crocante con pico fresco y queso costeno.', 16000, 2, true, false],
+            [$starters->id, 'Ceviche de mango', 'Mango biche, cebolla morada y leche de tigre suave.', 22000, 3, false, false],
+            [$mains->id, 'Arroz meloso de mar', 'Arroz cremoso con pesca del dia y vegetales.', 42000, 1, true, true],
+            [$mains->id, 'Pollo a la brasa', 'Pollo jugoso con papas rusticas y ensalada.', 36000, 2, true, true],
+            [$mains->id, 'Pasta de la casa', 'Pasta corta con tomate asado, albahaca y queso.', 32000, 3, true, false],
+            [$mains->id, 'Hamburguesa artesanal', 'Carne de res, queso fundido y pan brioche.', 34000, 4, false, false],
+            [$drinks->id, 'Limonada de hierbabuena', 'Limonada natural con hielo y hierbabuena.', 9000, 1, true, false],
+            [$drinks->id, 'Cafe frio', 'Cafe suave con leche y hielo.', 11000, 2, true, false],
+            [$drinks->id, 'Soda de frutos rojos', 'Soda artesanal con frutos rojos y limon.', 12000, 3, true, false],
+            [$desserts->id, 'Flan de caramelo', 'Flan cremoso con caramelo oscuro.', 14000, 1, true, true],
+            [$desserts->id, 'Brownie tibio', 'Brownie de cacao con helado de vainilla.', 17000, 2, true, false],
         ];
 
-        foreach ($products as [$categoryId, $name, $description, $price, $position]) {
-            Product::firstOrCreate(
+        foreach ($products as [$categoryId, $name, $description, $price, $position, $isAvailable, $isFeatured]) {
+            Product::updateOrCreate(
                 ['name' => $name],
                 [
                     'category_id' => $categoryId,
+                    'slug' => str($name)->slug()->toString(),
                     'description' => $description,
                     'price' => $price,
                     'position' => $position,
-                    'is_available' => true,
+                    'sort_order' => $position,
+                    'is_available' => $isAvailable,
+                    'is_featured' => $isFeatured,
                 ]
             );
         }

@@ -59,11 +59,19 @@
 
         <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($featuredProducts as $product)
-                <article class="rounded-md border border-zinc-200 bg-white p-5">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">{{ $product->category->name }}</p>
-                    <h3 class="mt-2 text-lg font-semibold">{{ $product->name }}</h3>
-                    <p class="mt-2 min-h-12 text-sm leading-6 text-zinc-600">{{ $product->description }}</p>
-                    <p class="mt-4 text-lg font-semibold">{{ $product->formattedPrice() }}</p>
+                <article class="overflow-hidden rounded-md border border-zinc-200 bg-white">
+                    <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="aspect-video w-full object-cover">
+                    <div class="p-5">
+                        <p class="text-xs font-semibold uppercase tracking-wide" style="color: {{ $primaryColor }};">{{ $product->category->name }}</p>
+                        <h3 class="mt-2 text-lg font-semibold">{{ $product->name }}</h3>
+                        <p class="mt-2 min-h-12 text-sm leading-6 text-zinc-600">{{ $product->description }}</p>
+                        <div class="mt-4 flex items-center justify-between gap-3">
+                            <p class="text-lg font-semibold">{{ $product->formattedPrice() }}</p>
+                            @unless ($product->is_available)
+                                <span class="rounded-md bg-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-700">Agotado</span>
+                            @endunless
+                        </div>
+                    </div>
                 </article>
             @empty
                 <p class="rounded-md border border-dashed border-zinc-300 bg-white p-6 text-sm text-zinc-600">Aun no hay productos cargados.</p>

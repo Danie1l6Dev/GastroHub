@@ -16,9 +16,9 @@ class RestaurantController extends Controller
         return view('public.home', [
             'restaurant' => RestaurantSetting::first(),
             'featuredProducts' => Product::query()
-                ->where('is_available', true)
+                ->where('is_featured', true)
                 ->with('category')
-                ->orderBy('position')
+                ->orderBy('sort_order')
                 ->take(6)
                 ->get(),
             'activeTables' => DiningTable::query()->where('is_active', true)->count(),
@@ -31,8 +31,8 @@ class RestaurantController extends Controller
             'restaurant' => RestaurantSetting::first(),
             'categories' => Category::query()
                 ->where('is_active', true)
-                ->with(['availableProducts'])
-                ->orderBy('position')
+                ->with(['visibleProducts'])
+                ->orderBy('sort_order')
                 ->orderBy('name')
                 ->get(),
         ]);

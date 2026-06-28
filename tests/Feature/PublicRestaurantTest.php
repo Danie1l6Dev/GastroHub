@@ -17,7 +17,7 @@ class PublicRestaurantTest extends TestCase
     {
         RestaurantSetting::create(['name' => 'Mesa Clara']);
         $category = Category::factory()->create(['name' => 'Fuertes']);
-        Product::factory()->for($category)->create(['name' => 'Arroz meloso', 'price' => 42000]);
+        Product::factory()->for($category)->create(['name' => 'Arroz meloso', 'price' => 42000, 'is_featured' => true]);
         DiningTable::factory()->create();
 
         $this->get('/')
@@ -40,7 +40,7 @@ class PublicRestaurantTest extends TestCase
             ->assertOk()
             ->assertSee('Entradas')
             ->assertSee('Croquetas')
-            ->assertDontSee('Agotado')
+            ->assertSee('Agotado')
             ->assertDontSee('Invisible');
     }
 

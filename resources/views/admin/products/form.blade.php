@@ -3,7 +3,7 @@
 @section('content')
     <h1 class="text-3xl font-semibold">{{ $product->exists ? 'Editar producto' : 'Nuevo producto' }}</h1>
 
-    <form method="POST" action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}" class="mt-6 max-w-2xl space-y-5 rounded-md border border-zinc-200 bg-white p-5">
+    <form method="POST" action="{{ $product->exists ? route('admin.products.update', $product) : route('admin.products.store') }}" enctype="multipart/form-data" class="mt-6 max-w-2xl space-y-5 rounded-md border border-zinc-200 bg-white p-5">
         @csrf
         @if ($product->exists)
             @method('PUT')
@@ -20,11 +20,7 @@
             @error('category_id') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
         </div>
 
-        <div>
-            <label class="text-sm font-medium" for="name">Nombre</label>
-            <input id="name" name="name" value="{{ old('name', $product->name) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
-            @error('name') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-        </div>
+        <x-form-input label="Nombre" name="name" :value="$product->name" required />
 
         <div>
             <label class="text-sm font-medium" for="description">Descripcion</label>
@@ -33,16 +29,17 @@
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
-            <div>
-                <label class="text-sm font-medium" for="price">Precio</label>
-                <input id="price" name="price" type="number" min="0" value="{{ old('price', $product->price ?? 0) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
-                @error('price') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-            </div>
-            <div>
-                <label class="text-sm font-medium" for="position">Posicion</label>
-                <input id="position" name="position" type="number" min="0" value="{{ old('position', $product->position ?? 0) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
-                @error('position') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-            </div>
+            <x-form-input label="Precio en pesos" name="price" type="number" min="100" step="100" :value="$product->price ?? 0" required />
+            <x-form-input label="Orden" name="sort_order" type="number" min="0" :value="$product->sort_order ?? $product->position ?? 0" required />
+        </div>
+
+        <div>
+            <label class="text-sm font-medium" for="image">Imagen</label>
+            <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" class="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+            @error('image') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
+            @if ($product->exists)
+                <img src="{{ $product->imageUrl() }}" alt="{{ $product->name }}" class="mt-3 h-24 w-24 rounded-md object-cover">
+            @endif
         </div>
 
         <label class="flex items-center gap-2 text-sm font-medium">
@@ -50,8 +47,13 @@
             Disponible
         </label>
 
+        <label class="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured ?? false)) class="rounded border-zinc-300">
+            Destacado
+        </label>
+
         <div class="flex gap-2">
-            <button class="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Guardar</button>
+            <x-button>Guardar</x-button>
             <a href="{{ route('admin.products.index') }}" class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">Cancelar</a>
         </div>
     </form>

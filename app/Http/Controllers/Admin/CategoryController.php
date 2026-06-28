@@ -13,7 +13,7 @@ class CategoryController extends Controller
     public function index(): View
     {
         return view('admin.categories.index', [
-            'categories' => Category::withCount('products')->orderBy('position')->orderBy('name')->get(),
+            'categories' => Category::withCount('products')->orderBy('sort_order')->orderBy('name')->get(),
         ]);
     }
 
@@ -43,6 +43,12 @@ class CategoryController extends Controller
 
     public function destroy(Category $category): RedirectResponse
     {
+        if ($category->products()->exists()) {
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('status', 'No puedes eliminar una categoria que tiene productos.');
+        }
+
         $category->delete();
 
         return redirect()->route('admin.categories.index')->with('status', 'Categoria eliminada.');
