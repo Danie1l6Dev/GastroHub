@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiningTableController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\RestaurantSettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Public\RestaurantController;
 use App\Http\Controllers\Public\TableJoinController;
@@ -22,6 +23,8 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->midd
 
 Route::prefix('admin')->middleware('auth')->name('admin.')->group(function (): void {
     Route::get('/', DashboardController::class)->name('dashboard');
+    Route::get('/settings', [RestaurantSettingController::class, 'edit'])->name('settings.edit');
+    Route::put('/settings', [RestaurantSettingController::class, 'update'])->name('settings.update');
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('products', ProductController::class)->except(['show']);
     Route::resource('tables', DiningTableController::class)->except(['show'])->parameters([

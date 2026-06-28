@@ -18,11 +18,16 @@ class DatabaseSeeder extends Seeder
             ['id' => 1],
             [
                 'name' => 'GastroHub Bistro',
+                'slug' => 'gastrohub-bistro',
                 'tagline' => 'Sabores frescos, cuenta clara',
-                'description' => 'Un prototipo de restaurante con menu digital, mesas por QR y pedidos por persona.',
-                'address' => 'Calle 10 # 24-18',
+                'description' => 'Cocina casual con ingredientes frescos, platos para compartir y una experiencia digital sencilla desde la mesa.',
+                'primary_color' => '#059669',
+                'secondary_color' => '#111827',
+                'address' => 'Calle 10 # 24-18, Centro',
                 'phone' => '+57 300 555 0101',
                 'opening_hours' => 'Lunes a sabado, 12:00 p. m. - 10:00 p. m.',
+                'instagram_url' => 'https://instagram.com/gastrohub_bistro',
+                'is_open' => true,
             ]
         );
 

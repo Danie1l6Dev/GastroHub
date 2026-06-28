@@ -15,7 +15,7 @@
                     <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="{{ route('admin.products.index') }}">Menu</a>
                     <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="{{ route('admin.tables.index') }}">Mesas</a>
                     <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="#">Pedidos</a>
-                    <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="#">Configuracion</a>
+                    <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="{{ route('admin.settings.edit') }}">Configuracion</a>
                     <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="{{ route('admin.categories.index') }}">Categorias</a>
                     <a class="rounded-md px-3 py-2 hover:bg-zinc-100" href="{{ route('home') }}">Ver sitio</a>
                 </nav>

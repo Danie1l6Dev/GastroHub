@@ -24,7 +24,7 @@ class PublicRestaurantTest extends TestCase
             ->assertOk()
             ->assertSee('Mesa Clara')
             ->assertSee('Arroz meloso')
-            ->assertSee('Panel interno');
+            ->assertSee('Ver menu');
     }
 
     public function test_menu_shows_only_active_categories_and_available_products(): void
