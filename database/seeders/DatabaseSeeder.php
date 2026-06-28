@@ -26,10 +26,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate([
-            'email' => 'test@example.com',
+        User::updateOrCreate([
+            'email' => 'admin@restaurante.test',
         ], [
-            'name' => 'Test User',
+            'name' => 'Administrador',
             'password' => Hash::make('password'),
         ]);
 
@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
 
         $products = [
             [$starters->id, 'Croquetas de yuca', 'Yuca dorada con salsa cremosa de cilantro.', 18000, 1],
-            [$starters->id, 'Tostadas de maiz', 'Maiz crocante con pico fresco y queso costeño.', 16000, 2],
+            [$starters->id, 'Tostadas de maiz', 'Maiz crocante con pico fresco y queso costeno.', 16000, 2],
             [$mains->id, 'Arroz meloso de mar', 'Arroz cremoso con pesca del dia y vegetales.', 42000, 1],
             [$mains->id, 'Pollo a la brasa', 'Pollo jugoso con papas rusticas y ensalada.', 36000, 2],
             [$mains->id, 'Pasta de la casa', 'Pasta corta con tomate asado, albahaca y queso.', 32000, 3],

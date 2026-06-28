@@ -23,5 +23,12 @@
         <main>
             @yield('content')
         </main>
+
+        <footer class="border-t border-zinc-200 bg-white">
+            <div class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
+                <p>{{ $restaurant->name ?? 'GastroHub' }}</p>
+                <p>Menu digital y pedidos de mesa para prototipo.</p>
+            </div>
+        </footer>
     </body>
 </html>

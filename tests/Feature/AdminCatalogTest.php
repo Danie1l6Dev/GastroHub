@@ -5,12 +5,20 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\DiningTable;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class AdminCatalogTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->actingAs(User::factory()->create());
+    }
 
     public function test_admin_can_create_category(): void
     {
@@ -69,7 +77,7 @@ class AdminCatalogTest extends TestCase
 
         $this->get(route('admin.dashboard'))
             ->assertOk()
-            ->assertSee('Resumen del restaurante')
-            ->assertSee('Productos recientes');
+            ->assertSee('Dashboard administrativo')
+            ->assertSee('Pedidos nuevos');
     }
 }
