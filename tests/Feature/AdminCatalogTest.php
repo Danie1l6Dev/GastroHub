@@ -1,0 +1,75 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Category;
+use App\Models\DiningTable;
+use App\Models\Product;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class AdminCatalogTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_admin_can_create_category(): void
+    {
+        $this->post(route('admin.categories.store'), [
+            'name' => 'Postres',
+            'description' => 'Dulces de la casa',
+            'position' => 4,
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.categories.index'));
+
+        $this->assertDatabaseHas('categories', [
+            'name' => 'Postres',
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_admin_can_create_product(): void
+    {
+        $category = Category::factory()->create();
+
+        $this->post(route('admin.products.store'), [
+            'category_id' => $category->id,
+            'name' => 'Cafe frio',
+            'description' => 'Cafe con leche y hielo',
+            'price' => 11000,
+            'position' => 1,
+            'is_available' => '1',
+        ])->assertRedirect(route('admin.products.index'));
+
+        $this->assertDatabaseHas('products', [
+            'name' => 'Cafe frio',
+            'price' => 11000,
+            'is_available' => true,
+        ]);
+    }
+
+    public function test_admin_can_create_table_with_qr_token(): void
+    {
+        $this->post(route('admin.tables.store'), [
+            'name' => 'Mesa Terraza',
+            'capacity' => 4,
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.tables.index'));
+
+        $table = DiningTable::where('name', 'Mesa Terraza')->first();
+
+        $this->assertNotNull($table);
+        $this->assertNotEmpty($table->qr_token);
+    }
+
+    public function test_admin_dashboard_loads_counts(): void
+    {
+        $category = Category::factory()->create();
+        Product::factory()->for($category)->create();
+        DiningTable::factory()->create();
+
+        $this->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertSee('Resumen del restaurante')
+            ->assertSee('Productos recientes');
+    }
+}
