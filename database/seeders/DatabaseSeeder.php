@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\TableStatus;
 use App\Models\Category;
 use App\Models\DiningTable;
 use App\Models\Product;
@@ -90,9 +91,14 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach (range(1, 6) as $number) {
-            DiningTable::firstOrCreate(
+            DiningTable::updateOrCreate(
                 ['name' => 'Mesa '.$number],
-                ['capacity' => $number <= 2 ? 4 : 6, 'is_active' => true]
+                [
+                    'code' => 'T'.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                    'capacity' => $number <= 2 ? 4 : 6,
+                    'is_active' => true,
+                    'current_status' => TableStatus::Available,
+                ]
             );
         }
     }

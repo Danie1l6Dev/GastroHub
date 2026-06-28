@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TableStatus;
 use App\Models\Category;
 use App\Models\DiningTable;
 use App\Models\Product;
@@ -61,8 +62,10 @@ class AdminCatalogTest extends TestCase
     {
         $this->post(route('admin.tables.store'), [
             'name' => 'Mesa Terraza',
+            'code' => 'TERRAZA',
             'capacity' => 4,
             'is_active' => '1',
+            'current_status' => TableStatus::Available->value,
         ])->assertRedirect(route('admin.tables.index'));
 
         $table = DiningTable::where('name', 'Mesa Terraza')->first();

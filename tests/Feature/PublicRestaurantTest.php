@@ -49,9 +49,9 @@ class PublicRestaurantTest extends TestCase
         RestaurantSetting::create(['name' => 'Mesa Clara']);
         $table = DiningTable::factory()->create(['name' => 'Mesa 9']);
 
-        $this->get(route('tables.join', $table))
+        $this->get(route('tables.join', $table->qr_token))
             ->assertOk()
             ->assertSee('Mesa 9')
-            ->assertSee('QR de mesa');
+            ->assertSee('Nombre o alias');
     }
 }

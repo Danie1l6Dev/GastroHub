@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\TableStatus;
 use App\Models\DiningTable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -13,9 +14,11 @@ class DiningTableFactory extends Factory
     {
         return [
             'name' => 'Mesa '.fake()->unique()->numberBetween(1, 50),
-            'qr_token' => (string) Str::uuid(),
+            'code' => 'T'.fake()->unique()->numerify('###'),
+            'qr_token' => Str::random(48),
             'capacity' => fake()->numberBetween(2, 8),
             'is_active' => true,
+            'current_status' => TableStatus::Available,
         ];
     }
 }

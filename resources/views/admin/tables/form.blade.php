@@ -9,16 +9,23 @@
             @method('PUT')
         @endif
 
-        <div>
-            <label class="text-sm font-medium" for="name">Nombre visible</label>
-            <input id="name" name="name" value="{{ old('name', $table->name) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
-            @error('name') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-        </div>
+        <x-form-input label="Nombre visible" name="name" :value="$table->name" required />
+        <x-form-input label="Codigo interno" name="code" :value="$table->code" required />
 
         <div>
             <label class="text-sm font-medium" for="capacity">Capacidad</label>
             <input id="capacity" name="capacity" type="number" min="1" max="30" value="{{ old('capacity', $table->capacity) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2">
             @error('capacity') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
+            <label class="text-sm font-medium" for="current_status">Estado actual</label>
+            <select id="current_status" name="current_status" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
+                @foreach ($statuses as $status)
+                    <option value="{{ $status->value }}" @selected(old('current_status', $table->current_status?->value ?? 'available') === $status->value)>{{ $status->label() }}</option>
+                @endforeach
+            </select>
+            @error('current_status') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
         </div>
 
         @if ($table->exists)
@@ -34,7 +41,7 @@
         </label>
 
         <div class="flex gap-2">
-            <button class="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Guardar</button>
+            <x-button>Guardar</x-button>
             <a href="{{ route('admin.tables.index') }}" class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">Cancelar</a>
         </div>
     </form>
