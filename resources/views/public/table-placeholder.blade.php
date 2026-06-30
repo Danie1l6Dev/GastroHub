@@ -196,6 +196,12 @@
                 try {
                     state = await request(stateUrl, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
                     currentGuestId = state.current_guest_id;
+                    if (isEditingCartNote()) {
+                        setError('');
+
+                        return;
+                    }
+
                     render();
                     setError('');
                 } catch (error) {
@@ -260,7 +266,7 @@
                                 </div>
                             </div>
                             <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-xs text-zinc-500">${guest.items.length} en carrito · ${guest.orders.length} pedidos${guest.id === state.coordinator_guest_id ? ' · Encargado' : ''}</p>
+                                <p class="text-xs text-zinc-500">${guest.items.length} en carrito - ${guest.orders.length} pedidos${guest.id === state.coordinator_guest_id ? ' - Encargado' : ''}</p>
                                 <button
                                     type="button"
                                     data-select-guest="${guest.guest_token}"
@@ -396,21 +402,35 @@
                             <div class="mt-4 border-t border-zinc-100 pt-3">
                                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Pedidos enviados</p>
                                 <div class="mt-2 space-y-3">
-                                    ${guest.orders.length ? guest.orders.map((order) => `
-                                        <div class="rounded-md bg-zinc-50 p-3">
-                                            <div class="flex items-center justify-between gap-3">
-                                                <p class="text-xs font-semibold text-zinc-600">Pedido #${order.id} · ${escapeHtml(order.status_label)}</p>
-                                                <p class="text-sm font-semibold tabular-nums">${order.subtotal_formatted}</p>
-                                            </div>
-                                            <div class="mt-2 space-y-1">
-                                                ${order.items.map((item) => `
-                                                    <div class="text-xs text-zinc-600">
-                                                        ${escapeHtml(item.name)} x${item.quantity}${item.notes ? ` · ${escapeHtml(item.notes)}` : ''}
+                                    ${guest.orders.length ? guest.orders.map((order) => {
+                                        const status = orderStatusMeta(order.status, order.status_label);
+
+                                        return `
+                                            <div class="rounded-md border border-zinc-200 bg-white p-3">
+                                                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                    <div>
+                                                        <div class="flex flex-wrap items-center gap-2">
+                                                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Pedido #${order.id}</p>
+                                                            <span class="rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.classes}">${escapeHtml(status.label)}</span>
+                                                        </div>
+                                                        <p class="mt-2 text-xs leading-5 text-zinc-500">${escapeHtml(status.hint)}</p>
                                                     </div>
-                                                `).join('')}
+                                                    <p class="text-base font-semibold tabular-nums text-zinc-950">${order.subtotal_formatted}</p>
+                                                </div>
+                                                <div class="mt-3 divide-y divide-zinc-100 rounded-md bg-zinc-50 px-3">
+                                                    ${order.items.map((item) => `
+                                                        <div class="py-2 text-sm">
+                                                            <div class="flex items-start justify-between gap-3">
+                                                                <p class="min-w-0 font-medium text-zinc-800">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
+                                                                <p class="shrink-0 text-xs font-semibold tabular-nums text-zinc-500">${item.subtotal_formatted}</p>
+                                                            </div>
+                                                            ${item.notes ? `<p class="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">Nota: ${escapeHtml(item.notes)}</p>` : ''}
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
                                             </div>
-                                        </div>
-                                    `).join('') : '<p class="text-sm text-zinc-500">Aun no ha enviado pedidos.</p>'}
+                                        `;
+                                    }).join('') : '<p class="text-sm text-zinc-500">Aun no ha enviado pedidos.</p>'}
                                 </div>
                             </div>
                             <p class="mt-3 text-xs font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Seleccion lista' : 'Esperando confirmacion de seleccion'}</p>
@@ -461,6 +481,35 @@
                 const item = guest.items.find((entry) => entry.product_id === productId);
                 return item ? item.quantity : 0;
             };
+
+            const isEditingCartNote = () => document.activeElement?.matches('[data-cart-note]');
+
+            const orderStatusMeta = (status, label) => ({
+                new: {
+                    label: label || 'Nuevo',
+                    hint: 'Recibido por el restaurante.',
+                    classes: 'border-amber-200 bg-amber-50 text-amber-900',
+                },
+                preparing: {
+                    label: label || 'Preparando',
+                    hint: 'La cocina ya esta trabajando en este pedido.',
+                    classes: 'border-sky-200 bg-sky-50 text-sky-900',
+                },
+                delivered: {
+                    label: label || 'Entregado',
+                    hint: 'Este pedido ya fue entregado en la mesa.',
+                    classes: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+                },
+                cancelled: {
+                    label: label || 'Cancelado',
+                    hint: 'Este pedido fue cancelado y no suma a la cuenta.',
+                    classes: 'border-zinc-200 bg-zinc-100 text-zinc-600',
+                },
+            }[status] || {
+                label: label || status,
+                hint: 'Estado actualizado por el restaurante.',
+                classes: 'border-zinc-200 bg-zinc-100 text-zinc-700',
+            });
 
             root.querySelector('[data-alias-form]').addEventListener('submit', async (event) => {
                 event.preventDefault();
