@@ -5,7 +5,7 @@
         <div>
             <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Panel interno</p>
             <h1 class="mt-2 text-3xl font-semibold">Dashboard administrativo</h1>
-            <p class="mt-2 text-sm text-zinc-600">Vista inicial del prototipo. Los indicadores se conectaran al flujo de pedidos en una fase posterior.</p>
+            <p class="mt-2 text-sm text-zinc-600">Resumen operativo con pedidos, mesas ocupadas y ventas simuladas del dia.</p>
         </div>
     </div>
 
@@ -20,8 +20,8 @@
         <div class="mt-4 flex flex-wrap gap-2">
             <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50" href="{{ route('admin.products.index') }}">Menu</a>
             <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50" href="{{ route('admin.tables.index') }}">Mesas</a>
-            <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-500" href="#">Pedidos</a>
-            <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-500" href="#">Configuracion</a>
+            <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50" href="{{ route('admin.orders.index') }}">Pedidos</a>
+            <a class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50" href="{{ route('admin.settings.edit') }}">Configuracion</a>
         </div>
     </section>
 @endsection

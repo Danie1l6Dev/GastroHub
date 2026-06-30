@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiningTableController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\RestaurantSettingController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
@@ -37,6 +38,9 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function (): v
     Route::put('/settings', [RestaurantSettingController::class, 'update'])->name('settings.update');
     Route::resource('categories', CategoryController::class)->except(['show']);
     Route::resource('products', ProductController::class)->except(['show']);
+    Route::get('orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::patch('orders/sessions/{session}/main/status', [OrderController::class, 'updateSessionMainStatus'])->name('orders.sessions.main.status');
+    Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
     Route::post('tables/{table}/regenerate-token', [DiningTableController::class, 'regenerateToken'])->name('tables.regenerate-token');
     Route::get('tables/{table}/qr.svg', [DiningTableController::class, 'downloadQr'])->name('tables.qr.download');
     Route::get('tables/{table}/print', [DiningTableController::class, 'printQr'])->name('tables.qr.print');
