@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\TableAccountMode;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\TableAccountModeRequest;
 use App\Http\Requests\TableAliasRequest;
 use App\Http\Requests\TableItemRequest;
+use App\Http\Requests\TableReadyRequest;
 use App\Models\DiningTable;
 use App\Models\Product;
 use App\Models\RestaurantSetting;
@@ -72,14 +75,46 @@ class TableJoinController extends Controller
 
         $request->session()->put($this->aliasSessionKey($table), $guest->alias);
         $request->session()->put($this->guestSessionKey($table), $guest->id);
+        $request->session()->put($this->participationSessionKey($table), true);
+        $this->rememberOwnedGuest($request, $table, $guest);
+        $this->rememberCoordinatorGuest($request, $table, $guest);
 
         if ($request->expectsJson()) {
-            return response()->json($this->tableSessionService->state($table, $guest->id));
+            return response()->json($this->tableSessionService->state(
+                table: $table,
+                guestId: $guest->id,
+                coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+            ));
         }
 
         return redirect()
             ->route('tables.join', $table->qr_token)
             ->with('status', 'Listo, ya estas identificado en esta mesa.');
+    }
+
+    public function accountMode(TableAccountModeRequest $request, string $qrToken): RedirectResponse|Response|JsonResponse
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $session = $this->tableSessionService->chooseAccountMode(
+            table: $table,
+            accountMode: $request->enum('account_mode', TableAccountMode::class)
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json($this->tableSessionService->state(
+                table: $table,
+                coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+            ));
+        }
+
+        return redirect()
+            ->route('tables.join', $table->qr_token)
+            ->with('status', 'Modo de cuenta seleccionado: '.$session->account_mode->label().'.');
     }
 
     public function state(Request $request, string $qrToken): JsonResponse|Response
@@ -92,7 +127,8 @@ class TableJoinController extends Controller
 
         return response()->json($this->tableSessionService->state(
             table: $table,
-            guestId: $request->session()->get($this->guestSessionKey($table))
+            guestId: $request->session()->get($this->guestSessionKey($table)),
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
         ));
     }
 
@@ -110,7 +146,10 @@ class TableJoinController extends Controller
         ]);
 
         if ($request->expectsJson()) {
-            return response()->json($this->tableSessionService->state($table));
+            return response()->json($this->tableSessionService->state(
+                table: $table,
+                coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+            ));
         }
 
         return redirect()
@@ -138,7 +177,11 @@ class TableJoinController extends Controller
         $request->session()->put($this->guestSessionKey($table), $guest->id);
 
         if ($request->expectsJson()) {
-            return response()->json($this->tableSessionService->state($table, $guest->id));
+            return response()->json($this->tableSessionService->state(
+                table: $table,
+                guestId: $guest->id,
+                coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+            ));
         }
 
         return redirect()
@@ -165,7 +208,57 @@ class TableJoinController extends Controller
             delta: $request->integer('delta')
         );
 
-        return response()->json($this->tableSessionService->state($table, $guest->id));
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $guest->id,
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
+    }
+
+    public function ready(TableReadyRequest $request, string $qrToken): JsonResponse|Response
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $guest = TableGuest::whereKey($request->session()->get($this->guestSessionKey($table)))->first();
+
+        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
+
+        $this->tableSessionService->setGuestReady(
+            table: $table,
+            guest: $guest,
+            isReady: $request->boolean('is_ready')
+        );
+
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $guest->id,
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
+    }
+
+    public function confirm(string $qrToken, Request $request): JsonResponse|Response
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $guest = TableGuest::whereKey($this->coordinatorGuestIdForRequest($request, $table))->first();
+
+        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
+
+        $this->tableSessionService->confirmOrder($table, $guest);
+
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $request->session()->get($this->guestSessionKey($table)),
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
     }
 
     private function aliasSessionKey(DiningTable $table): string
@@ -176,6 +269,117 @@ class TableJoinController extends Controller
     private function guestSessionKey(DiningTable $table): string
     {
         return 'tables.'.$table->id.'.guest_id';
+    }
+
+    private function coordinatorSessionKey(DiningTable $table): string
+    {
+        return 'tables.'.$table->id.'.coordinator_guest_id';
+    }
+
+    private function ownedGuestsSessionKey(DiningTable $table): string
+    {
+        return 'tables.'.$table->id.'.owned_guest_ids';
+    }
+
+    private function participationSessionKey(DiningTable $table): string
+    {
+        return 'tables.'.$table->id.'.has_participated';
+    }
+
+    private function rememberOwnedGuest(Request $request, DiningTable $table, TableGuest $guest): void
+    {
+        $ownedGuestIds = $request->session()->get($this->ownedGuestsSessionKey($table), []);
+
+        if (! in_array($guest->id, $ownedGuestIds, true)) {
+            $ownedGuestIds[] = $guest->id;
+        }
+
+        $request->session()->put($this->ownedGuestsSessionKey($table), $ownedGuestIds);
+    }
+
+    private function rememberCoordinatorGuest(Request $request, DiningTable $table, TableGuest $guest): void
+    {
+        if ($request->session()->has($this->coordinatorSessionKey($table))) {
+            return;
+        }
+
+        $firstGuestId = $guest->tableSession
+            ->guests()
+            ->orderBy('id')
+            ->value('id');
+
+        if ($firstGuestId === $guest->id) {
+            $request->session()->put($this->coordinatorSessionKey($table), $guest->id);
+        }
+    }
+
+    private function coordinatorGuestIdForRequest(Request $request, DiningTable $table): ?int
+    {
+        $coordinatorGuestId = $request->session()->get($this->coordinatorSessionKey($table));
+
+        if ($coordinatorGuestId) {
+            return $coordinatorGuestId;
+        }
+
+        $guestId = $request->session()->get($this->guestSessionKey($table));
+
+        if (! $guestId) {
+            return $this->recoverCoordinatorGuestIdFromParticipation($request, $table);
+        }
+
+        $guest = TableGuest::with('tableSession.guests')
+            ->whereKey($guestId)
+            ->first();
+
+        if (! $guest || $guest->tableSession?->dining_table_id !== $table->id || $guest->tableSession->status !== 'open') {
+            return null;
+        }
+
+        $firstGuestId = $guest->tableSession->guests->sortBy('id')->first()?->id;
+
+        $ownedGuestIds = $request->session()->get($this->ownedGuestsSessionKey($table), []);
+
+        if ($firstGuestId === $guest->id) {
+            if ($ownedGuestIds !== [] && ! in_array($firstGuestId, $ownedGuestIds, true)) {
+                return null;
+            }
+
+            $request->session()->put($this->coordinatorSessionKey($table), $guest->id);
+
+            return $guest->id;
+        }
+
+        if (! in_array($firstGuestId, $ownedGuestIds, true)) {
+            return null;
+        }
+
+        $request->session()->put($this->coordinatorSessionKey($table), $firstGuestId);
+
+        return $firstGuestId;
+    }
+
+    private function recoverCoordinatorGuestIdFromParticipation(Request $request, DiningTable $table): ?int
+    {
+        $session = $table->sessions()
+            ->with('guests')
+            ->where('status', 'open')
+            ->first();
+
+        $firstGuestId = $session?->guests->sortBy('id')->first()?->id;
+
+        if (! $firstGuestId) {
+            return null;
+        }
+
+        $ownedGuestIds = $request->session()->get($this->ownedGuestsSessionKey($table), []);
+
+        if (! in_array($firstGuestId, $ownedGuestIds, true)) {
+            return null;
+        }
+
+        $request->session()->put($this->coordinatorSessionKey($table), $firstGuestId);
+
+        return $firstGuestId;
     }
 
     private function activeTableResponse(string $qrToken): DiningTable|Response

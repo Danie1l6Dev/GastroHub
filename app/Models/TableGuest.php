@@ -12,12 +12,16 @@ class TableGuest extends Model
         'table_session_id',
         'alias',
         'status',
+        'is_ready',
+        'ready_at',
         'paid_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'is_ready' => 'boolean',
+            'ready_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
     }

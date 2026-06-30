@@ -57,6 +57,8 @@ class TableQrTest extends TestCase
         $this->get(route('tables.join', $table->qr_token))
             ->assertOk()
             ->assertSee('Mesa 3')
+            ->assertSee('Pago en conjunto')
+            ->assertSee('Cuentas separadas')
             ->assertSee('Nombre o alias')
             ->assertDontSee('email');
     }
@@ -64,6 +66,7 @@ class TableQrTest extends TestCase
     public function test_customer_can_continue_with_alias(): void
     {
         $table = DiningTable::factory()->create(['name' => 'Mesa 4', 'is_active' => true]);
+        $this->chooseSeparateAccountMode($table);
 
         $this->post(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -95,6 +98,7 @@ class TableQrTest extends TestCase
             'price' => 18000,
             'is_available' => true,
         ]);
+        $this->chooseSeparateAccountMode($table);
 
         $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -119,6 +123,7 @@ class TableQrTest extends TestCase
             'price' => 18000,
             'is_available' => false,
         ]);
+        $this->chooseSeparateAccountMode($table);
 
         $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -143,6 +148,7 @@ class TableQrTest extends TestCase
             'price' => 9000,
             'is_available' => true,
         ]);
+        $this->chooseSeparateAccountMode($table);
 
         $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -192,6 +198,7 @@ class TableQrTest extends TestCase
             'price' => 9000,
             'is_available' => true,
         ]);
+        $this->chooseSeparateAccountMode($table);
 
         $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -207,9 +214,10 @@ class TableQrTest extends TestCase
 
         $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
 
-        $this->postJson(route('tables.join.store', $table->qr_token), [
+        $joinAna = $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Ana',
         ])->assertOk();
+        $anaId = $joinAna->json('current_guest_id');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $limonada->id,
@@ -233,6 +241,331 @@ class TableQrTest extends TestCase
             ->assertJsonPath('guests.1.alias', 'Ana')
             ->assertJsonPath('guests.1.subtotal', 9000)
             ->assertJsonPath('total', 36000);
+    }
+
+    public function test_joint_payment_mode_allows_only_one_person_to_order(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+
+        $this->postJson(route('tables.account-mode', $table->qr_token), [
+            'account_mode' => 'joint',
+        ])->assertOk()
+            ->assertJsonPath('account_mode', 'joint')
+            ->assertJsonPath('requires_account_mode', false);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk()
+            ->assertJsonPath('guests.0.alias', 'Laura')
+            ->assertJsonCount(1, 'guests');
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertUnprocessable();
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('account_mode', 'joint')
+            ->assertJsonCount(1, 'guests')
+            ->assertJsonPath('guests.0.alias', 'Laura');
+    }
+
+    public function test_joint_payment_mode_warns_other_devices_when_order_has_items(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'name' => 'Ceviche',
+            'price' => 24000,
+            'is_available' => true,
+        ]);
+
+        $this->postJson(route('tables.account-mode', $table->qr_token), [
+            'account_mode' => 'joint',
+        ])->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk()
+            ->assertJsonPath('joint_order_locked', false)
+            ->assertJsonPath('joint_order_owner_alias', 'Laura');
+
+        $this->flushSession();
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('account_mode', 'joint')
+            ->assertJsonPath('current_guest_id', null)
+            ->assertJsonPath('joint_order_locked', true)
+            ->assertJsonPath('joint_order_owner_alias', 'Laura')
+            ->assertJsonPath('total', 24000);
+    }
+
+    public function test_people_mark_ready_and_first_guest_confirms_final_order(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'name' => 'Arroz cremoso',
+            'price' => 28000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+        $lauraId = $joinLaura->json('current_guest_id');
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.is_ready', true)
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->app['session']->forget('tables.'.$table->id.'.coordinator_guest_id');
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+        $this->app['session']->forget('tables.'.$table->id.'.coordinator_guest_id');
+
+        $this->app['session']->forget('tables.'.$table->id.'.has_participated');
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('current_guest_id', null)
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraId]))
+            ->assertOk();
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $joinAna = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertOk();
+        $anaId = $joinAna->json('current_guest_id');
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('current_guest_id', $anaId)
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.confirm', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('order_confirmed', true)
+            ->assertJsonPath('confirmed_by_alias', 'Laura')
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Carlos',
+        ])->assertUnprocessable();
+
+        $this->flushSession();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Maria',
+        ])->assertUnprocessable();
+
+        $this->assertDatabaseHas('orders', [
+            'status' => 'confirmed',
+            'total' => 28000,
+        ]);
+    }
+
+    public function test_other_device_cannot_confirm_even_when_it_edits_a_ready_guest(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 28000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+        $lauraId = $joinLaura->json('current_guest_id');
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk();
+
+        $this->flushSession();
+
+        $joinAna = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertOk();
+        $anaId = $joinAna->json('current_guest_id');
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('device_can_confirm_order', false)
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraId]))
+            ->assertOk()
+            ->assertJsonPath('current_guest_id', $lauraId)
+            ->assertJsonPath('device_can_confirm_order', false)
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.confirm', $table->qr_token))->assertForbidden();
+    }
+
+    public function test_device_without_first_guest_ownership_cannot_confirm_after_everyone_is_ready(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 28000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk();
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $joinAna = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertOk();
+        $anaId = $joinAna->json('current_guest_id');
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk();
+
+        $this->app['session']->forget([
+            'tables.'.$table->id.'.coordinator_guest_id',
+            'tables.'.$table->id.'.owned_guest_ids',
+        ]);
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('current_guest_id', $anaId)
+            ->assertJsonPath('device_can_confirm_order', false)
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.confirm', $table->qr_token))->assertForbidden();
+    }
+
+    public function test_new_alias_blocks_final_confirmation_until_that_person_is_ready(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 18000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk()
+            ->assertJsonPath('all_guests_ready', true);
+
+        $this->getJson(route('tables.state', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonCount(1, 'guests');
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertOk()
+            ->assertJsonCount(2, 'guests')
+            ->assertJsonPath('guests.1.is_ready', false)
+            ->assertJsonPath('all_guests_ready', false)
+            ->assertJsonPath('can_confirm_order', false);
+    }
+
+    public function test_ready_guest_must_edit_again_before_changing_items(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 18000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertUnprocessable();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => false,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.is_ready', false);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.items.0.quantity', 2);
     }
 
     public function test_invalid_token_is_rejected_with_clear_error(): void
@@ -277,6 +610,7 @@ class TableQrTest extends TestCase
             'price' => 16000,
             'is_available' => true,
         ]);
+        $this->chooseSeparateAccountMode($table);
 
         $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
@@ -322,5 +656,12 @@ class TableQrTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'image/svg+xml')
             ->assertSee('<svg', false);
+    }
+
+    private function chooseSeparateAccountMode(DiningTable $table): void
+    {
+        $this->postJson(route('tables.account-mode', $table->qr_token), [
+            'account_mode' => 'separate',
+        ])->assertOk();
     }
 }

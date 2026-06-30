@@ -5,10 +5,13 @@
         class="mx-auto max-w-6xl px-4 py-5 sm:py-8"
         data-table-app
         data-state-url="{{ route('tables.state', $table->qr_token) }}"
+        data-account-mode-url="{{ route('tables.account-mode', $table->qr_token) }}"
         data-join-url="{{ route('tables.join.store', $table->qr_token) }}"
         data-release-url="{{ route('tables.guest.release', $table->qr_token) }}"
         data-select-guest-url="{{ route('tables.guests.select', [$table->qr_token, '__guest__']) }}"
         data-items-url="{{ route('tables.items', $table->qr_token) }}"
+        data-ready-url="{{ route('tables.ready', $table->qr_token) }}"
+        data-confirm-url="{{ route('tables.confirm', $table->qr_token) }}"
         data-initial-alias="{{ $alias }}"
         data-initial-guest-id="{{ $guestId }}"
     >
@@ -23,10 +26,39 @@
 
         <div data-error class="mb-4 hidden rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"></div>
 
-        <div class="grid gap-4 lg:grid-cols-[20rem_1fr] lg:gap-5">
+        <section data-joint-locked-panel class="mb-5 hidden rounded-md border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Pago en conjunto activo</p>
+            <h2 class="mt-2 text-2xl font-semibold text-amber-950">Esta mesa ya tiene un pedido en curso</h2>
+            <p class="mt-2 text-sm leading-6 text-amber-900">
+                Ya alguien entro y selecciono pago en conjunto. Pidele a
+                <span data-joint-owner class="font-semibold">la persona encargada</span>
+                que agregue lo que quieres pedir.
+            </p>
+        </section>
+
+        <section data-account-mode-panel class="mb-5 hidden rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Antes de pedir</p>
+            <h2 class="mt-2 text-2xl font-semibold text-zinc-950">Como van a pagar?</h2>
+            <p class="mt-2 text-sm leading-6 text-zinc-600">Elige una opcion para esta cuenta. Si regeneras el QR, la mesa vuelve a empezar.</p>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <button type="button" data-account-mode="joint" class="rounded-md border border-zinc-200 bg-zinc-950 p-4 text-left text-white transition hover:bg-zinc-800 active:scale-[0.99]">
+                    <span class="block text-base font-semibold">Pago en conjunto</span>
+                    <span class="mt-1 block text-sm leading-5 text-zinc-300">Una sola persona toma el pedido de toda la mesa.</span>
+                </button>
+                <button type="button" data-account-mode="separate" class="rounded-md border border-zinc-200 bg-white p-4 text-left transition hover:bg-zinc-50 active:scale-[0.99]">
+                    <span class="block text-base font-semibold text-zinc-950">Cuentas separadas</span>
+                    <span class="mt-1 block text-sm leading-5 text-zinc-600">Cada persona tiene alias, pedido y subtotal propio.</span>
+                </button>
+            </div>
+        </section>
+
+        <div data-workspace class="grid gap-4 lg:grid-cols-[20rem_1fr] lg:gap-5">
             <aside class="space-y-4 lg:sticky lg:top-5 lg:self-start">
                 <section class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
-                    <h2 class="text-lg font-semibold text-zinc-950">Tu alias</h2>
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="text-lg font-semibold text-zinc-950">Tu alias</h2>
+                        <span data-account-mode-badge class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600"></span>
+                    </div>
                     <form data-alias-form class="mt-4 space-y-3">
                         <div>
                             <label class="text-sm font-medium text-zinc-800" for="alias">Nombre o alias</label>
@@ -34,11 +66,17 @@
                         </div>
                         <button class="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto">Continuar</button>
                     </form>
+                    <p data-join-locked class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950">
+                        El pedido ya fue confirmado. No se pueden agregar mas personas a esta mesa.
+                    </p>
                     <div data-current-guest class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 p-3">
                         <p class="text-sm text-emerald-900">Ingresaste como</p>
                         <p data-current-alias class="mt-1 text-lg font-semibold text-emerald-950"></p>
                         <button type="button" data-release-guest class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-100 active:scale-[0.98]">
                             Listo, agregar otra persona
+                        </button>
+                        <button type="button" data-ready-toggle class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-emerald-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900 active:scale-[0.98]">
+                            Mi seleccion esta lista
                         </button>
                     </div>
                 </section>
@@ -48,7 +86,7 @@
                     <p data-table-total-mobile class="mt-1 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
 
-                <section class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                <section data-people-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="text-lg font-semibold text-zinc-950">Personas</h2>
                         <span data-guest-count class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">0</span>
@@ -60,6 +98,20 @@
                     <p class="text-sm text-zinc-300">Total de la mesa</p>
                     <p data-table-total class="mt-2 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
+
+                <section data-confirm-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Pedido final</p>
+                            <h2 class="mt-1 text-lg font-semibold text-zinc-950">Confirmacion</h2>
+                        </div>
+                        <span data-ready-summary class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">0/0</span>
+                    </div>
+                    <p data-confirm-status class="mt-3 text-sm leading-6 text-zinc-600">Agrega tu alias para empezar.</p>
+                    <button type="button" data-confirm-order class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
+                        Confirmar todo el pedido
+                    </button>
+                </section>
             </aside>
 
             <div class="space-y-4">
@@ -67,6 +119,7 @@
                     <div class="border-b border-zinc-100 p-4 sm:p-5">
                         <h2 class="text-xl font-semibold text-zinc-950">Seleccionar platos</h2>
                         <p class="mt-1 text-sm leading-6 text-zinc-600">Elige una seccion y agrega tus platos. Los agotados se ven, pero no se pueden seleccionar.</p>
+                        <p data-selection-lock class="mt-3 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950"></p>
                     </div>
                     <div data-products class="p-4 sm:p-5"></div>
                 </section>
@@ -86,10 +139,13 @@
 
             const csrf = document.querySelector('meta[name="csrf-token"]').content;
             const stateUrl = root.dataset.stateUrl;
+            const accountModeUrl = root.dataset.accountModeUrl;
             const joinUrl = root.dataset.joinUrl;
             const releaseUrl = root.dataset.releaseUrl;
             const selectGuestUrl = root.dataset.selectGuestUrl;
             const itemsUrl = root.dataset.itemsUrl;
+            const readyUrl = root.dataset.readyUrl;
+            const confirmUrl = root.dataset.confirmUrl;
             let currentGuestId = root.dataset.initialGuestId ? Number(root.dataset.initialGuestId) : null;
             let selectedCategoryId = null;
             let state = null;
@@ -147,9 +203,26 @@
             const render = () => {
                 if (!state) return;
 
+                const needsAccountMode = state.requires_account_mode;
+                const isJointMode = state.account_mode === 'joint';
+                const isJointOrderLocked = Boolean(state.joint_order_locked);
+                root.querySelector('[data-joint-locked-panel]').classList.toggle('hidden', !isJointOrderLocked);
+                root.querySelector('[data-joint-owner]').textContent = state.joint_order_owner_alias || 'la persona encargada';
+                root.querySelector('[data-account-mode-panel]').classList.toggle('hidden', !needsAccountMode || isJointOrderLocked);
+                root.querySelector('[data-workspace]').classList.toggle('hidden', needsAccountMode || isJointOrderLocked);
+
+                if (needsAccountMode || isJointOrderLocked) return;
+
                 const currentGuest = state.guests.find((guest) => guest.id === currentGuestId);
+                root.querySelector('[data-alias-form]').classList.toggle('hidden', state.order_confirmed);
+                root.querySelector('[data-join-locked]').classList.toggle('hidden', !state.order_confirmed);
                 root.querySelector('[data-current-guest]').classList.toggle('hidden', !currentGuest);
                 root.querySelector('[data-current-alias]').textContent = currentGuest?.alias || '';
+                root.querySelector('[data-release-guest]').hidden = isJointMode || state.order_confirmed;
+                root.querySelector('[data-ready-toggle]').hidden = !currentGuest || state.order_confirmed;
+                root.querySelector('[data-ready-toggle]').textContent = currentGuest?.is_ready ? 'Editar mi seleccion' : 'Mi seleccion esta lista';
+                root.querySelector('[data-people-panel]').classList.toggle('hidden', isJointMode);
+                root.querySelector('[data-account-mode-badge]').textContent = state.account_mode_label || '';
                 root.querySelector('[data-guest-count]').textContent = state.guests.length;
                 root.querySelectorAll('[data-table-total], [data-table-total-mobile]').forEach((node) => {
                     node.textContent = state.total_formatted || money(state.total);
@@ -158,6 +231,7 @@
                 renderGuests();
                 renderProducts();
                 renderBreakdown();
+                renderConfirmation();
             };
 
             const renderGuests = () => {
@@ -167,16 +241,19 @@
                         <div class="rounded-md border p-3 ${guest.id === currentGuestId ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}">
                             <div class="flex items-center justify-between gap-3">
                                 <p class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.alias)}</p>
-                                <p class="text-sm font-semibold tabular-nums">${guest.subtotal_formatted}</p>
+                                <div class="shrink-0 text-right">
+                                    <p class="text-sm font-semibold tabular-nums">${guest.subtotal_formatted}</p>
+                                    <p class="mt-1 text-[11px] font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Listo' : 'Pendiente'}</p>
+                                </div>
                             </div>
                             <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-xs text-zinc-500">${guest.items.length} productos seleccionados</p>
+                                <p class="text-xs text-zinc-500">${guest.items.length} productos seleccionados${guest.id === state.coordinator_guest_id ? ' · Encargado' : ''}</p>
                                 <button
                                     type="button"
                                     data-select-guest="${guest.id}"
                                     class="inline-flex min-h-9 items-center justify-center rounded-md border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${guest.id === currentGuestId ? 'border-emerald-200 bg-white text-emerald-950' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
                                 >
-                                    ${guest.id === currentGuestId ? 'Editando' : 'Editar pedido'}
+                                    ${guest.id === currentGuestId ? 'Seleccionado' : 'Seleccionar'}
                                 </button>
                             </div>
                         </div>
@@ -186,6 +263,16 @@
 
             const renderProducts = () => {
                 const target = root.querySelector('[data-products]');
+                const activeGuest = currentGuest();
+                const selectionLock = root.querySelector('[data-selection-lock]');
+                const lockedMessage = state.order_confirmed
+                    ? `Pedido confirmado por ${escapeHtml(state.confirmed_by_alias || 'la mesa')}.`
+                    : activeGuest?.is_ready
+                        ? 'Tu seleccion esta marcada como lista. Toca "Editar mi seleccion" si necesitas cambiar algo.'
+                        : '';
+                selectionLock.innerHTML = lockedMessage;
+                selectionLock.classList.toggle('hidden', !lockedMessage);
+
                 if (!state.categories.length) {
                     target.innerHTML = '<p class="rounded-md bg-zinc-50 p-4 text-sm text-zinc-500">Todavia no hay secciones del menu disponibles.</p>';
                     return;
@@ -252,9 +339,9 @@
                                     <p class="text-sm font-semibold tabular-nums text-zinc-950">${product.price_formatted}</p>
                                     ${product.is_available
                                         ? `<div class="relative z-10 flex w-full items-center justify-between gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1 sm:w-auto">
-                                            <button aria-label="Quitar ${escapeHtml(product.name)}" data-delta="-1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35" ${!currentGuestId || selected === 0 ? 'disabled' : ''}>-</button>
+                                            <button aria-label="Quitar ${escapeHtml(product.name)}" data-delta="-1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() || selected === 0 ? 'disabled' : ''}>-</button>
                                             <span class="pointer-events-none min-w-8 text-center text-sm font-semibold tabular-nums text-zinc-950">${selected}</span>
-                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35" ${!currentGuestId ? 'disabled' : ''}>+</button>
+                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() ? 'disabled' : ''}>+</button>
                                         </div>`
                                         : '<span class="rounded-md bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-600">No disponible</span>'
                                     }
@@ -282,9 +369,46 @@
                                     </div>
                                 `).join('') : '<p class="py-2 text-sm text-zinc-500">Sin platos seleccionados.</p>'}
                             </div>
+                            <p class="mt-3 text-xs font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Seleccion lista' : 'Esperando confirmacion de seleccion'}</p>
                         </section>
                     `).join('')
                     : '<p class="text-sm text-zinc-500">Cuando alguien agregue su alias, aparecera aqui.</p>';
+            };
+
+            const renderConfirmation = () => {
+                const readyCount = state.guests.filter((guest) => guest.is_ready).length;
+                const totalGuests = state.guests.length;
+                const current = currentGuest();
+                const button = root.querySelector('[data-confirm-order]');
+                const status = root.querySelector('[data-confirm-status]');
+
+                root.querySelector('[data-ready-summary]').textContent = `${readyCount}/${totalGuests}`;
+                button.hidden = Boolean(state.order_confirmed);
+                button.disabled = !state.can_confirm_order;
+
+                if (state.order_confirmed) {
+                    status.textContent = `Pedido confirmado por ${state.confirmed_by_alias || 'la mesa'}.`;
+                } else if (!totalGuests) {
+                    status.textContent = 'Agrega tu alias para empezar.';
+                } else if (!state.device_can_confirm_order && !current) {
+                    status.textContent = `${state.coordinator_alias || 'La primera persona'} confirmara el pedido cuando todos esten listos.`;
+                } else if (!state.device_can_confirm_order) {
+                    status.textContent = `${state.coordinator_alias || 'La primera persona'} es quien puede confirmar el pedido final.`;
+                } else if (!state.has_items) {
+                    status.textContent = 'Agrega al menos un plato antes de confirmar.';
+                } else if (!state.all_guests_ready) {
+                    status.textContent = 'Espera a que todas las personas marquen su seleccion como lista.';
+                } else {
+                    status.textContent = 'Todo esta listo. Puedes enviar el pedido final al restaurante.';
+                }
+            };
+
+            const currentGuest = () => state.guests.find((guest) => guest.id === currentGuestId);
+
+            const canEditCurrentSelection = () => {
+                const guest = currentGuest();
+
+                return Boolean(guest && !guest.is_ready && !state.order_confirmed);
             };
 
             const currentGuestProductQuantity = (productId) => {
@@ -313,6 +437,26 @@
             });
 
             root.addEventListener('click', async (event) => {
+                const accountModeButton = event.target.closest('[data-account-mode]');
+                if (accountModeButton) {
+                    try {
+                        accountModeButton.disabled = true;
+                        state = await request(accountModeUrl, {
+                            method: 'POST',
+                            body: JSON.stringify({ account_mode: accountModeButton.dataset.accountMode }),
+                        });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('No se pudo guardar la forma de pago de esta mesa.');
+                    } finally {
+                        accountModeButton.disabled = false;
+                    }
+
+                    return;
+                }
+
                 const releaseButton = event.target.closest('[data-release-guest]');
                 if (releaseButton) {
                     try {
@@ -326,6 +470,46 @@
                         setError('No se pudo preparar el dispositivo para otra persona.');
                     } finally {
                         releaseButton.disabled = false;
+                    }
+
+                    return;
+                }
+
+                const readyButton = event.target.closest('[data-ready-toggle]');
+                if (readyButton) {
+                    const guest = currentGuest();
+                    if (!guest) return;
+
+                    try {
+                        readyButton.disabled = true;
+                        state = await request(readyUrl, {
+                            method: 'POST',
+                            body: JSON.stringify({ is_ready: !guest.is_ready }),
+                        });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('No se pudo actualizar el estado de tu seleccion.');
+                    } finally {
+                        readyButton.disabled = false;
+                    }
+
+                    return;
+                }
+
+                const confirmButton = event.target.closest('[data-confirm-order]');
+                if (confirmButton && !confirmButton.disabled) {
+                    try {
+                        confirmButton.disabled = true;
+                        state = await request(confirmUrl, { method: 'POST' });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('Todavia no se puede confirmar el pedido final.');
+                    } finally {
+                        confirmButton.disabled = false;
                     }
 
                     return;

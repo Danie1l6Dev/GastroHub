@@ -13,11 +13,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [RestaurantController::class, 'home'])->name('home');
 Route::get('/menu', [RestaurantController::class, 'menu'])->name('menu');
 Route::get('/table/{qrToken}', TableJoinController::class)->name('tables.join');
+Route::post('/table/{qrToken}/account-mode', [TableJoinController::class, 'accountMode'])->name('tables.account-mode');
 Route::post('/table/{qrToken}', [TableJoinController::class, 'join'])->name('tables.join.store');
 Route::post('/table/{qrToken}/release', [TableJoinController::class, 'release'])->name('tables.guest.release');
 Route::post('/table/{qrToken}/guests/{guest}/select', [TableJoinController::class, 'selectGuest'])->name('tables.guests.select');
 Route::get('/table/{qrToken}/state', [TableJoinController::class, 'state'])->name('tables.state');
 Route::post('/table/{qrToken}/items', [TableJoinController::class, 'item'])->name('tables.items');
+Route::post('/table/{qrToken}/ready', [TableJoinController::class, 'ready'])->name('tables.ready');
+Route::post('/table/{qrToken}/confirm', [TableJoinController::class, 'confirm'])->name('tables.confirm');
 Route::get('/mesa/{qrToken}', TableJoinController::class)->name('tables.legacy-join');
 
 Route::middleware('guest')->group(function (): void {
