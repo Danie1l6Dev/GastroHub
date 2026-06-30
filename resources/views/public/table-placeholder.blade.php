@@ -2,7 +2,7 @@
 
 @section('content')
     <section
-        class="mx-auto max-w-6xl px-4 py-5 sm:py-8"
+        class="mx-auto max-w-6xl px-4 pb-28 pt-4 sm:py-8 lg:pb-8"
         data-table-app
         data-state-url="{{ route('tables.state', $table->qr_token) }}"
         data-account-mode-url="{{ route('tables.account-mode', $table->qr_token) }}"
@@ -19,14 +19,14 @@
         data-initial-guest-id="{{ $guestId }}"
         data-initial-guest-token="{{ $guestToken }}"
     >
-        <div class="mb-5 overflow-hidden rounded-3xl bg-zinc-950 p-5 text-white shadow-xl shadow-zinc-950/10 sm:mb-6 sm:p-7">
+        <div class="mb-4 overflow-hidden rounded-3xl bg-zinc-950 p-4 text-white shadow-xl shadow-zinc-950/10 sm:mb-6 sm:p-7">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Mesa compartida</p>
-                    <h1 class="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">{{ $table->name }}</h1>
-                    <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Todos ven quienes estan en la mesa, que pidio cada persona y el total general.</p>
+                    <h1 class="mt-2 text-3xl font-semibold tracking-tight sm:text-5xl">{{ $table->name }}</h1>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Ingresa tu alias, elige tus platos y revisa la cuenta desde el celular.</p>
                 </div>
-                <a href="{{ route('menu') }}" class="gh-btn rounded-2xl bg-white text-zinc-950 hover:bg-zinc-100">Ver menu completo</a>
+                <a href="{{ route('menu') }}" class="gh-btn w-full rounded-2xl bg-white text-zinc-950 hover:bg-zinc-100 sm:w-auto">Ver menu completo</a>
             </div>
         </div>
 
@@ -42,35 +42,35 @@
             </p>
         </section>
 
-        <section data-account-mode-panel class="mb-5 hidden rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+        <section data-account-mode-panel class="mb-5 hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
             <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Antes de pedir</p>
             <h2 class="mt-2 text-2xl font-semibold text-zinc-950">Como van a pagar?</h2>
             <p class="mt-2 text-sm leading-6 text-zinc-600">Elige una opcion para esta cuenta. Si regeneras el QR, la mesa vuelve a empezar.</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                <button type="button" data-account-mode="joint" class="rounded-md border border-zinc-200 bg-zinc-950 p-4 text-left text-white transition hover:bg-zinc-800 active:scale-[0.99]">
+                <button type="button" data-account-mode="joint" class="min-h-28 rounded-2xl border border-zinc-200 bg-zinc-950 p-4 text-left text-white transition hover:bg-zinc-800 active:scale-[0.99]">
                     <span class="block text-base font-semibold">Pago en conjunto</span>
                     <span class="mt-1 block text-sm leading-5 text-zinc-300">Una sola persona toma el pedido de toda la mesa.</span>
                 </button>
-                <button type="button" data-account-mode="separate" class="rounded-md border border-zinc-200 bg-white p-4 text-left transition hover:bg-zinc-50 active:scale-[0.99]">
+                <button type="button" data-account-mode="separate" class="min-h-28 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition hover:bg-zinc-50 active:scale-[0.99]">
                     <span class="block text-base font-semibold text-zinc-950">Cuentas separadas</span>
                     <span class="mt-1 block text-sm leading-5 text-zinc-600">Cada persona tiene alias, pedido y subtotal propio.</span>
                 </button>
             </div>
         </section>
 
-        <div data-workspace class="grid gap-4 lg:grid-cols-[20rem_1fr] lg:gap-5">
-            <aside class="space-y-4 lg:sticky lg:top-5 lg:self-start">
-                <section class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+        <div data-workspace class="grid min-w-0 gap-4 lg:grid-cols-[20rem_1fr] lg:gap-5">
+            <aside class="min-w-0 space-y-4 lg:sticky lg:top-5 lg:self-start">
+                <section id="alias" class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="text-lg font-semibold text-zinc-950">Tu alias</h2>
                         <span data-account-mode-badge class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600"></span>
                     </div>
                     <form data-alias-form class="mt-4 space-y-3">
                         <div>
-                            <label class="text-sm font-medium text-zinc-800" for="alias">Nombre o alias</label>
-                            <input id="alias" name="alias" type="text" maxlength="80" value="{{ $alias }}" placeholder="Ej. Laura" class="mt-1 min-h-11 w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-base outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100 sm:text-sm">
+                            <label class="text-sm font-medium text-zinc-800" for="guest_alias">Nombre o alias</label>
+                            <input id="guest_alias" name="alias" type="text" maxlength="80" value="{{ $alias }}" placeholder="Ej. Laura" autocomplete="nickname" enterkeyhint="done" class="mt-1 min-h-12 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-base outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
                         </div>
-                        <button class="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] sm:w-auto">Continuar</button>
+                        <button class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98]">Continuar</button>
                     </form>
                     <p data-join-locked class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950">
                         El pedido ya fue confirmado. No se pueden agregar mas personas a esta mesa.
@@ -92,7 +92,7 @@
                     <p data-table-total-mobile class="mt-1 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
 
-                <section data-people-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                <section id="personas" data-people-panel class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-center justify-between gap-3">
                         <h2 class="text-lg font-semibold text-zinc-950">Personas</h2>
                         <span data-guest-count class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">0</span>
@@ -105,7 +105,7 @@
                     <p data-table-total class="mt-2 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
 
-                <section data-bill-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                <section id="cuenta" data-bill-panel class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Cuenta</p>
@@ -124,7 +124,7 @@
                     </div>
                 </section>
 
-                <section data-confirm-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                <section data-confirm-panel class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Pedido final</p>
@@ -139,8 +139,8 @@
                 </section>
             </aside>
 
-            <div class="space-y-4">
-                <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+            <div class="min-w-0 space-y-4">
+                <section id="menu-mesa" class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
                     <div class="border-b border-zinc-100 p-4 sm:p-5">
                         <div class="grid gap-4 lg:grid-cols-[1fr_16rem] lg:items-end">
                             <div>
@@ -149,7 +149,7 @@
                             </div>
                             <label class="block">
                                 <span class="sr-only">Buscar platos</span>
-                                <input data-table-menu-search type="search" placeholder="Buscar plato" class="gh-field">
+                                <input data-table-menu-search type="search" placeholder="Buscar plato" enterkeyhint="search" class="gh-field">
                             </label>
                         </div>
                         <p data-selection-lock class="mt-3 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950"></p>
@@ -157,12 +157,31 @@
                     <div data-products class="p-4 sm:p-5"></div>
                 </section>
 
-                <section class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                <section id="detalle" class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <h2 class="text-lg font-semibold text-zinc-950">Detalle compartido</h2>
                     <div data-breakdown class="mt-4 space-y-4"></div>
                 </section>
             </div>
         </div>
+
+        <nav data-mobile-table-bar class="gh-mobile-bottom-bar hidden" aria-label="Acciones de la mesa">
+            <div class="mb-2 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <p data-mobile-guest class="truncate text-xs font-semibold text-zinc-500">Mesa {{ $table->name }}</p>
+                    <p data-mobile-total class="text-lg font-semibold tabular-nums text-zinc-950">$0</p>
+                </div>
+                <a href="#detalle" class="gh-btn gh-btn-primary min-h-11 shrink-0 rounded-xl px-4">
+                    Carrito
+                    <span data-mobile-cart-count class="ml-2 rounded-full bg-white/15 px-2 py-0.5 text-xs tabular-nums">0</span>
+                </a>
+            </div>
+            <div class="grid grid-cols-4 gap-2">
+                <a href="#menu-mesa" class="gh-mobile-action gh-mobile-action-active">Menu</a>
+                <a href="#personas" class="gh-mobile-action">Personas</a>
+                <a href="#detalle" class="gh-mobile-action">Pedido</a>
+                <a href="#cuenta" class="gh-mobile-action">Cuenta</a>
+            </div>
+        </nav>
     </section>
 
     <script>
@@ -261,6 +280,7 @@
                 root.querySelector('[data-joint-owner]').textContent = state.joint_order_owner_alias || 'la persona encargada';
                 root.querySelector('[data-account-mode-panel]').classList.toggle('hidden', !needsAccountMode || isJointOrderLocked);
                 root.querySelector('[data-workspace]').classList.toggle('hidden', needsAccountMode);
+                root.querySelector('[data-mobile-table-bar]').classList.toggle('hidden', needsAccountMode);
 
                 if (needsAccountMode) return;
 
@@ -285,6 +305,13 @@
                 root.querySelectorAll('[data-table-total], [data-table-total-mobile]').forEach((node) => {
                     node.textContent = state.total_formatted || money(state.total);
                 });
+                root.querySelector('[data-mobile-total]').textContent = state.total_formatted || money(state.total);
+                root.querySelector('[data-mobile-guest]').textContent = currentGuest
+                    ? `${currentGuest.alias} · ${state.account_mode_label || 'Mesa'}`
+                    : `Mesa {{ $table->name }}`;
+                root.querySelector('[data-mobile-cart-count]').textContent = currentGuest
+                    ? currentGuest.items.reduce((total, item) => total + Number(item.quantity || 0), 0)
+                    : 0;
 
                 renderGuests();
                 renderProducts();
@@ -297,7 +324,7 @@
                 const target = root.querySelector('[data-guests]');
                 target.innerHTML = state.guests.length
                     ? state.guests.map((guest) => `
-                        <div class="rounded-md border p-3 ${guest.id === currentGuestId ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}">
+                        <div class="rounded-2xl border p-3 ${guest.id === currentGuestId ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</p>
@@ -313,7 +340,7 @@
                                 <button
                                     type="button"
                                     data-select-guest="${guest.guest_token}"
-                                    class="inline-flex min-h-9 items-center justify-center rounded-md border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${guest.id === currentGuestId ? 'border-emerald-200 bg-white text-emerald-950' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
+                                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] sm:w-auto ${guest.id === currentGuestId ? 'border-emerald-200 bg-white text-emerald-950' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
                                 >
                                     ${guest.id === currentGuestId ? 'Seleccionado' : 'Seleccionar'}
                                 </button>
@@ -358,13 +385,13 @@
                 });
 
                 target.innerHTML = `
-                    <div class="overflow-x-auto border-b border-zinc-100 pb-4">
-                        <div class="flex min-w-max gap-2" role="tablist" aria-label="Secciones del menu">
+                    <div class="-mx-4 overflow-x-auto border-b border-zinc-100 px-4 pb-4 sm:mx-0 sm:px-0">
+                        <div class="flex w-max min-w-full gap-2" role="tablist" aria-label="Secciones del menu">
                             ${state.categories.map((category) => `
                                 <button
                                     type="button"
                                     data-category="${category.id}"
-                                    class="min-h-11 rounded-md border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${category.id === selectedCategoryId ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'}"
+                                    class="min-h-11 shrink-0 rounded-xl border px-4 py-2 text-sm font-semibold transition active:scale-[0.98] ${category.id === selectedCategoryId ? 'border-zinc-950 bg-zinc-950 text-white' : 'border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50'}"
                                     role="tab"
                                     aria-selected="${category.id === selectedCategoryId ? 'true' : 'false'}"
                                 >
@@ -396,8 +423,8 @@
 
                 return `
                     <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/[0.08] ${product.is_available ? '' : 'opacity-75'}">
-                        <div class="flex flex-col gap-3 p-3 sm:flex-row">
-                            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" loading="lazy" class="pointer-events-none h-40 w-full shrink-0 rounded-xl object-cover outline outline-1 -outline-offset-1 outline-black/10 sm:h-28 sm:w-28">
+                        <div class="flex gap-3 p-3">
+                            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" loading="lazy" class="pointer-events-none h-24 w-24 shrink-0 rounded-xl object-cover outline outline-1 -outline-offset-1 outline-black/10 sm:h-28 sm:w-28">
                             <div class="flex min-w-0 flex-1 flex-col">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
@@ -409,10 +436,10 @@
                                 <div class="mt-auto flex flex-col gap-3 pt-3 sm:flex-row sm:items-end sm:justify-between">
                                     <p class="text-sm font-semibold tabular-nums text-zinc-950">${product.price_formatted}</p>
                                     ${product.is_available
-                                        ? `<div class="relative z-10 flex w-full items-center justify-between gap-1 rounded-md border border-zinc-200 bg-zinc-50 p-1 sm:w-auto">
-                                            <button aria-label="Quitar ${escapeHtml(product.name)}" data-delta="-1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md border border-zinc-200 bg-white text-lg font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() || selected === 0 ? 'disabled' : ''}>-</button>
+                                        ? `<div class="relative z-10 flex w-full items-center justify-between gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 sm:w-auto">
+                                            <button aria-label="Quitar ${escapeHtml(product.name)}" data-delta="-1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-lg font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() || selected === 0 ? 'disabled' : ''}>-</button>
                                             <span class="pointer-events-none min-w-8 text-center text-sm font-semibold tabular-nums text-zinc-950">${selected}</span>
-                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-md bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() ? 'disabled' : ''}>+</button>
+                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() ? 'disabled' : ''}>+</button>
                                         </div>`
                                         : '<span class="rounded-md bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-600">No disponible</span>'
                                     }
@@ -427,14 +454,14 @@
                 const target = root.querySelector('[data-breakdown]');
                 target.innerHTML = state.guests.length
                     ? state.guests.map((guest) => `
-                        <section class="rounded-md border border-zinc-200 p-4">
+                        <section class="rounded-2xl border border-zinc-200 p-4">
                             <div class="flex items-center justify-between gap-3">
                                 <h3 class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</h3>
                                 <p class="font-semibold tabular-nums">${guest.subtotal_formatted}</p>
                             </div>
                             <div class="mt-3 flex items-center justify-between gap-3">
                                 <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Carrito</p>
-                            ${guest.id === currentGuestId && guest.items.length && !guest.is_ready ? '<button type="button" data-clear-cart class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">Vaciar</button>' : ''}
+                            ${guest.id === currentGuestId && guest.items.length && !guest.is_ready ? '<button type="button" data-clear-cart class="min-h-10 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">Vaciar</button>' : ''}
                             </div>
                             <div class="mt-2 divide-y divide-zinc-100">
                                 ${guest.items.length ? guest.items.map((item) => `
@@ -443,7 +470,7 @@
                                             <p class="min-w-0">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                             <p class="font-medium tabular-nums">${item.subtotal_formatted}</p>
                                         </div>
-                                        ${guest.id === currentGuestId && !guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" class="mt-2 min-h-9 w-full rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100">` : (item.notes ? `<p class="mt-1 text-xs text-zinc-500">Nota: ${escapeHtml(item.notes)}</p>` : '')}
+                                        ${guest.id === currentGuestId && !guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" enterkeyhint="done" class="mt-2 min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 sm:text-sm">` : (item.notes ? `<p class="mt-1 text-xs text-zinc-500">Nota: ${escapeHtml(item.notes)}</p>` : '')}
                                     </div>
                                 `).join('') : '<p class="py-2 text-sm text-zinc-500">Sin platos seleccionados.</p>'}
                             </div>
@@ -454,7 +481,7 @@
                                         const status = orderStatusMeta(order.status, order.status_label);
 
                                         return `
-                                            <div class="rounded-md border border-zinc-200 bg-white p-3">
+                                            <div class="rounded-2xl border border-zinc-200 bg-white p-3">
                                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                                     <div>
                                                         <div class="flex flex-wrap items-center gap-2">
@@ -465,7 +492,7 @@
                                                     </div>
                                                     <p class="text-base font-semibold tabular-nums text-zinc-950">${order.subtotal_formatted}</p>
                                                 </div>
-                                                <div class="mt-3 divide-y divide-zinc-100 rounded-md bg-zinc-50 px-3">
+                                                <div class="mt-3 divide-y divide-zinc-100 rounded-xl bg-zinc-50 px-3">
                                                     ${order.items.map((item) => `
                                                         <div class="py-2 text-sm">
                                                             <div class="flex items-start justify-between gap-3">
@@ -513,7 +540,7 @@
                 payFull.disabled = !current || !bill.can_pay_full_table;
 
                 summary.innerHTML = `
-                    <div class="grid grid-cols-3 gap-2 rounded-md bg-zinc-50 p-3 text-center">
+                    <div class="grid gap-2 rounded-2xl bg-zinc-50 p-3 text-center sm:grid-cols-3">
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Total</p>
                             <p class="mt-1 text-sm font-semibold tabular-nums text-zinc-950">${bill.total_formatted}</p>
@@ -529,12 +556,12 @@
                     </div>
                     <div class="space-y-2">
                         ${bill.participants.map((participant) => `
-                            <div class="rounded-md border border-zinc-200 p-3">
+                            <div class="rounded-2xl border border-zinc-200 p-3">
                                 <div class="flex items-center justify-between gap-3">
                                     <p class="min-w-0 truncate text-sm font-semibold text-zinc-950">${escapeHtml(participant.alias)}</p>
                                     <p class="text-sm font-semibold tabular-nums text-zinc-950">${participant.balance_formatted}</p>
                                 </div>
-                                <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-zinc-500">
+                                <div class="mt-2 grid gap-1 text-xs text-zinc-500 sm:grid-cols-3 sm:gap-2">
                                     <span>Consumo ${participant.consumed_formatted}</span>
                                     <span>Pagado ${participant.paid_formatted}</span>
                                     <span class="${participant.balance === 0 ? 'text-emerald-700' : 'text-amber-700'}">${participant.balance === 0 ? 'Al dia' : 'Pendiente'}</span>
@@ -543,7 +570,7 @@
                         `).join('')}
                     </div>
                     ${bill.payments.length ? `
-                        <div class="rounded-md border border-emerald-200 bg-emerald-50 p-3">
+                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
                             <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Pagos registrados</p>
                             <div class="mt-2 space-y-1">
                                 ${bill.payments.map((payment) => `
@@ -640,7 +667,7 @@
                         body: JSON.stringify({ alias }),
                     });
                     currentGuestId = state.current_guest_id;
-                    root.querySelector('#alias').value = state.guests.find((guest) => guest.id === currentGuestId)?.alias || alias;
+                    root.querySelector('#guest_alias').value = state.guests.find((guest) => guest.id === currentGuestId)?.alias || alias;
                     render();
                     setError('');
                 } catch (error) {
@@ -675,7 +702,7 @@
                         releaseButton.disabled = true;
                         state = await request(releaseUrl, { method: 'POST' });
                         currentGuestId = null;
-                        root.querySelector('#alias').value = '';
+                        root.querySelector('#guest_alias').value = '';
                         render();
                         setError('');
                     } catch (error) {
@@ -770,7 +797,7 @@
                         const guestToken = selectGuestButton.dataset.selectGuest;
                         state = await request(selectGuestUrl.replace('__guest__', guestToken), { method: 'POST' });
                         currentGuestId = state.current_guest_id;
-                        root.querySelector('#alias').value = state.guests.find((guest) => guest.id === currentGuestId)?.alias || '';
+                        root.querySelector('#guest_alias').value = state.guests.find((guest) => guest.id === currentGuestId)?.alias || '';
                         render();
                         setError('');
                     } catch (error) {

@@ -1,4 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const closeAdminMenu = () => {
+        const menu = document.querySelector('[data-admin-mobile-menu]');
+        if (menu) {
+            menu.removeAttribute('open');
+            document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+        }
+    };
+
+    document.querySelector('[data-admin-menu-toggle]')?.addEventListener('click', () => {
+        window.setTimeout(() => {
+            const menu = document.querySelector('[data-admin-mobile-menu]');
+            if (!menu) return;
+
+            document.body.classList.toggle('overflow-hidden', menu.open);
+            document.body.classList.toggle('lg:overflow-auto', menu.open);
+        });
+    });
+
+    document.querySelector('[data-admin-menu-backdrop]')?.addEventListener('click', closeAdminMenu);
+
+    document.querySelectorAll('[data-admin-mobile-menu] a').forEach((link) => {
+        link.addEventListener('click', closeAdminMenu);
+    });
+
     document.querySelectorAll('[data-confirm]').forEach((element) => {
         element.addEventListener('click', (event) => {
             const message = element.getAttribute('data-confirm') || 'Confirmas esta accion?';

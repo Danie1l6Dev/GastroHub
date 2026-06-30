@@ -15,9 +15,9 @@
             @php
                 $billing = $billingSummaries[$table->id] ?? null;
             @endphp
-            <article class="gh-panel gh-card-hover">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
+            <article class="gh-panel gh-card-hover min-w-0">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0">
                         <h2 class="text-lg font-semibold">{{ $table->name }}</h2>
                         <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
                             <span class="font-semibold text-zinc-700">Codigo {{ $table->code }}</span>
@@ -29,10 +29,10 @@
                             <span class="rounded-full bg-zinc-100 px-2 py-1 font-semibold text-zinc-700">{{ $table->current_status->label() }}</span>
                         </div>
                     </div>
-                    <a href="{{ route('admin.tables.edit', $table) }}" class="gh-btn gh-btn-secondary min-h-10 px-3">Editar</a>
+                    <a href="{{ route('admin.tables.edit', $table) }}" class="gh-btn gh-btn-secondary min-h-10 w-full px-3 sm:w-auto">Editar</a>
                 </div>
 
-                <div class="mt-4 rounded-2xl bg-zinc-100 p-3 text-xs text-zinc-700">
+                <div class="mt-4 break-all rounded-2xl bg-zinc-100 p-3 text-xs leading-5 text-zinc-700">
                     {{ $table->qrUrl() }}
                 </div>
 
@@ -57,24 +57,24 @@
                     </div>
                 @endif
 
-                <div class="mt-4 flex flex-wrap gap-2">
+                <div class="mt-4 grid gap-2 sm:flex sm:flex-wrap">
                     <a href="{{ $table->qrUrl() }}" target="_blank" rel="noopener noreferrer" class="gh-btn gh-btn-secondary min-h-10 px-3">Ver enlace</a>
                     <a href="{{ route('admin.tables.qr.download', $table) }}" class="gh-btn gh-btn-secondary min-h-10 px-3">Descargar QR</a>
                     <a href="{{ route('admin.tables.qr.print', $table) }}" target="_blank" rel="noopener noreferrer" class="gh-btn gh-btn-secondary min-h-10 px-3">Imprimir</a>
                     <form method="POST" action="{{ route('admin.tables.regenerate-token', $table) }}">
                         @csrf
-                        <button class="gh-btn border border-amber-200 bg-white text-amber-800 hover:bg-amber-50 min-h-10 px-3" data-confirm="Regenerar el QR cerrara la sesion activa de esta mesa. Continuar?">Regenerar token</button>
+                        <button class="gh-btn min-h-10 w-full border border-amber-200 bg-white px-3 text-amber-800 hover:bg-amber-50 sm:w-auto" data-confirm="Regenerar el QR cerrara la sesion activa de esta mesa. Continuar?">Regenerar token</button>
                     </form>
                     @if ($billing && $billing['is_paid'])
                         <form method="POST" action="{{ route('admin.tables.close-session', $table) }}">
                             @csrf
-                            <button class="gh-btn border border-emerald-200 bg-white text-emerald-800 hover:bg-emerald-50 min-h-10 px-3" data-confirm="Cerrar esta mesa y liberarla?">Cerrar mesa</button>
+                            <button class="gh-btn min-h-10 w-full border border-emerald-200 bg-white px-3 text-emerald-800 hover:bg-emerald-50 sm:w-auto" data-confirm="Cerrar esta mesa y liberarla?">Cerrar mesa</button>
                         </form>
                     @endif
                     <form method="POST" action="{{ route('admin.tables.destroy', $table) }}">
                         @csrf
                         @method('DELETE')
-                        <button class="gh-btn gh-btn-danger min-h-10 px-3" data-confirm="Eliminar esta mesa?">Eliminar</button>
+                        <button class="gh-btn gh-btn-danger min-h-10 w-full px-3 sm:w-auto" data-confirm="Eliminar esta mesa?">Eliminar</button>
                     </form>
                 </div>
             </article>

@@ -30,7 +30,7 @@
     }
 
     .gh-panel {
-        @apply rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm shadow-zinc-950/[0.04];
+        @apply rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm shadow-zinc-950/[0.04] sm:p-5;
     }
 
     .gh-muted-panel {
@@ -66,7 +66,7 @@
     }
 
     .gh-field {
-        @apply mt-1 min-h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-950 transition focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100;
+        @apply mt-1 min-h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-base text-zinc-950 transition focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:text-sm;
     }
 
     .gh-label {
@@ -102,7 +102,28 @@
     }
 
     .gh-toast {
-        @apply fixed right-4 top-4 z-50 max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-950/10;
+        @apply fixed inset-x-4 top-4 z-50 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-950/10 sm:left-auto sm:max-w-sm;
+    }
+
+    .gh-safe-bottom {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+
+    .gh-mobile-bottom-bar {
+        @apply fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/80 bg-white/95 px-4 pt-3 shadow-2xl shadow-zinc-950/15 backdrop-blur-xl lg:hidden;
+        padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+
+    .gh-mobile-action {
+        @apply flex min-h-11 flex-col items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold text-zinc-600 transition active:scale-[0.98];
+    }
+
+    .gh-mobile-action-active {
+        @apply bg-zinc-950 text-white shadow-sm shadow-zinc-950/10;
+    }
+
+    .gh-touch-card {
+        @apply rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm shadow-zinc-950/[0.04];
     }
 }
 
