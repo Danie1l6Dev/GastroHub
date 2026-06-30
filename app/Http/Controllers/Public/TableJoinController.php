@@ -318,7 +318,11 @@ class TableJoinController extends Controller
         $coordinatorGuestId = $request->session()->get($this->coordinatorSessionKey($table));
 
         if ($coordinatorGuestId) {
-            return $coordinatorGuestId;
+            $storedCoordinatorGuestId = $this->validStoredCoordinatorGuestId($request, $table, (int) $coordinatorGuestId);
+
+            if ($storedCoordinatorGuestId) {
+                return $storedCoordinatorGuestId;
+            }
         }
 
         $guestId = $request->session()->get($this->guestSessionKey($table));
@@ -356,6 +360,28 @@ class TableJoinController extends Controller
         $request->session()->put($this->coordinatorSessionKey($table), $firstGuestId);
 
         return $firstGuestId;
+    }
+
+    private function validStoredCoordinatorGuestId(Request $request, DiningTable $table, int $coordinatorGuestId): ?int
+    {
+        $guest = TableGuest::with('tableSession.guests')
+            ->whereKey($coordinatorGuestId)
+            ->first();
+
+        $firstGuestId = $guest?->tableSession?->guests->sortBy('id')->first()?->id;
+
+        if (
+            ! $guest
+            || $guest->tableSession?->dining_table_id !== $table->id
+            || $guest->tableSession->status !== 'open'
+            || $firstGuestId !== $guest->id
+        ) {
+            $request->session()->forget($this->coordinatorSessionKey($table));
+
+            return null;
+        }
+
+        return $guest->id;
     }
 
     private function recoverCoordinatorGuestIdFromParticipation(Request $request, DiningTable $table): ?int

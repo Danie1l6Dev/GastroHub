@@ -307,6 +307,87 @@ class TableQrTest extends TestCase
             ->assertJsonPath('total', 24000);
     }
 
+    public function test_joint_payment_first_guest_can_confirm_final_order(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'name' => 'Cazuela',
+            'price' => 32000,
+            'is_available' => true,
+        ]);
+
+        $this->postJson(route('tables.account-mode', $table->qr_token), [
+            'account_mode' => 'joint',
+        ])->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Daniel',
+        ])->assertOk()
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk()
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('has_items', true)
+            ->assertJsonPath('can_confirm_order', false);
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.alias', 'Daniel')
+            ->assertJsonPath('guests.0.is_ready', true)
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.confirm', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('order_confirmed', true)
+            ->assertJsonPath('confirmed_by_alias', 'Daniel')
+            ->assertJsonPath('can_confirm_order', false);
+    }
+
+    public function test_stale_coordinator_marker_does_not_block_joint_payment_first_guest(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 32000,
+            'is_available' => true,
+        ]);
+
+        $this->postJson(route('tables.account-mode', $table->qr_token), [
+            'account_mode' => 'joint',
+        ])->assertOk();
+
+        $joinDaniel = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Daniel',
+        ])->assertOk();
+        $danielId = $joinDaniel->json('current_guest_id');
+
+        $this->app['session']->put('tables.'.$table->id.'.coordinator_guest_id', $danielId + 999);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('current_guest_id', $danielId)
+            ->assertJsonPath('all_guests_ready', true)
+            ->assertJsonPath('device_can_confirm_order', true)
+            ->assertJsonPath('can_confirm_order', true);
+
+        $this->postJson(route('tables.confirm', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('order_confirmed', true)
+            ->assertJsonPath('confirmed_by_alias', 'Daniel');
+    }
+
     public function test_people_mark_ready_and_first_guest_confirms_final_order(): void
     {
         $table = DiningTable::factory()->create(['is_active' => true]);
