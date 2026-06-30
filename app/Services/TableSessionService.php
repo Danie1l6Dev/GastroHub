@@ -15,9 +15,17 @@ use Illuminate\Support\Facades\DB;
 
 class TableSessionService
 {
+    public function __construct(private readonly TableBillingService $billingService) {}
+
     public function openSessionFor(DiningTable $table): TableSession
     {
         return DB::transaction(function () use ($table): TableSession {
+            abort_if(
+                $table->sessions()->where('status', 'payment_pending')->exists(),
+                422,
+                'Esta mesa ya esta pagada y espera cierre del restaurante.'
+            );
+
             $session = TableSession::firstOrCreate(
                 ['dining_table_id' => $table->id, 'status' => 'open'],
                 ['opened_at' => now()]
@@ -191,9 +199,9 @@ class TableSessionService
 
     public function state(DiningTable $table, ?int $guestId = null, ?int $coordinatorGuestId = null): array
     {
-        $session = TableSession::with(['confirmedByGuest', 'guests.cartItems', 'guests.orders.items'])
+        $session = TableSession::with(['confirmedByGuest', 'guests.cartItems', 'guests.orders.items', 'payments.tableGuest'])
             ->where('dining_table_id', $table->id)
-            ->where('status', 'open')
+            ->whereIn('status', ['open', 'payment_pending'])
             ->first();
 
         if ($session) {
@@ -314,6 +322,7 @@ class TableSessionService
             ],
             'account_mode' => $session?->account_mode?->value,
             'account_mode_label' => $session?->account_mode?->label(),
+            'session_status' => $session?->status,
             'requires_account_mode' => ! $session?->account_mode,
             'joint_order_locked' => $jointOrderLocked,
             'joint_order_owner_alias' => $jointOrderOwner['alias'] ?? null,
@@ -330,6 +339,7 @@ class TableSessionService
             'categories' => $categories,
             'total' => $total,
             'total_formatted' => $this->money($total),
+            'bill' => $session ? $this->billingService->summary($session) : null,
         ];
     }
 

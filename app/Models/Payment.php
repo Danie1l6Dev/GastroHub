@@ -11,8 +11,11 @@ class Payment extends Model
         'table_session_id',
         'table_guest_id',
         'scope',
+        'type',
         'amount',
+        'status',
         'paid_at',
+        'reference',
     ];
 
     protected function casts(): array

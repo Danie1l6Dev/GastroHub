@@ -44,6 +44,11 @@ class TableSession extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
     public function confirmedByGuest(): BelongsTo
     {
         return $this->belongsTo(TableGuest::class, 'confirmed_by_guest_id');

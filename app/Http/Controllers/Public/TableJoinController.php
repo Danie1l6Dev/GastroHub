@@ -12,6 +12,7 @@ use App\Models\DiningTable;
 use App\Models\Product;
 use App\Models\RestaurantSetting;
 use App\Models\TableGuest;
+use App\Services\TableBillingService;
 use App\Services\TableSessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,10 @@ use Illuminate\View\View;
 
 class TableJoinController extends Controller
 {
-    public function __construct(private readonly TableSessionService $tableSessionService) {}
+    public function __construct(
+        private readonly TableSessionService $tableSessionService,
+        private readonly TableBillingService $tableBillingService,
+    ) {}
 
     public function __invoke(string $qrToken, Request $request): View|Response
     {
@@ -171,7 +175,7 @@ class TableJoinController extends Controller
         abort_unless(
             $guest->tableSession()
                 ->where('dining_table_id', $table->id)
-                ->where('status', 'open')
+                ->whereIn('status', ['open', 'payment_pending'])
                 ->exists(),
             404
         );
@@ -297,6 +301,48 @@ class TableJoinController extends Controller
         ));
     }
 
+    public function payIndividual(string $qrToken, Request $request): JsonResponse|Response
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $guest = $this->currentGuestForRequest($request, $table);
+
+        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
+
+        $this->tableBillingService->payIndividual($table, $guest);
+
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $guest->id,
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
+    }
+
+    public function payFullTable(string $qrToken, Request $request): JsonResponse|Response
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $guest = $this->currentGuestForRequest($request, $table);
+
+        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
+
+        $this->tableBillingService->payFullTable($table, $guest);
+
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $guest->id,
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
+    }
+
     private function aliasSessionKey(DiningTable $table): string
     {
         return 'tables.'.$table->id.'.alias';
@@ -376,7 +422,7 @@ class TableJoinController extends Controller
             ->whereKey($guestId)
             ->first();
 
-        if (! $guest || $guest->tableSession?->dining_table_id !== $table->id || $guest->tableSession->status !== 'open') {
+        if (! $guest || $guest->tableSession?->dining_table_id !== $table->id || ! $this->sessionAllowsAccountViewing($guest->tableSession->status)) {
             return null;
         }
 
@@ -414,7 +460,7 @@ class TableJoinController extends Controller
         if (
             ! $guest
             || $guest->tableSession?->dining_table_id !== $table->id
-            || $guest->tableSession->status !== 'open'
+            || ! $this->sessionAllowsAccountViewing($guest->tableSession->status)
             || $firstGuestId !== $guest->id
         ) {
             $request->session()->forget($this->coordinatorSessionKey($table));
@@ -429,7 +475,7 @@ class TableJoinController extends Controller
     {
         $session = $table->sessions()
             ->with('guests')
-            ->where('status', 'open')
+            ->whereIn('status', ['open', 'payment_pending'])
             ->first();
 
         $firstGuestId = $session?->guests->sortBy('id')->first()?->id;
@@ -458,7 +504,7 @@ class TableJoinController extends Controller
                 ->where('guest_token', $guestToken)
                 ->first();
 
-            if ($guest && $guest->tableSession?->dining_table_id === $table->id && $guest->tableSession->status === 'open') {
+            if ($guest && $guest->tableSession?->dining_table_id === $table->id && $this->sessionAllowsAccountViewing($guest->tableSession->status)) {
                 $request->session()->put($this->aliasSessionKey($table), $guest->alias);
                 $request->session()->put($this->guestSessionKey($table), $guest->id);
 
@@ -470,7 +516,7 @@ class TableJoinController extends Controller
             ->whereKey($request->session()->get($this->guestSessionKey($table)))
             ->first();
 
-        if (! $guest || $guest->tableSession?->dining_table_id !== $table->id || $guest->tableSession->status !== 'open') {
+        if (! $guest || $guest->tableSession?->dining_table_id !== $table->id || ! $this->sessionAllowsAccountViewing($guest->tableSession->status)) {
             $request->session()->forget([
                 $this->aliasSessionKey($table),
                 $this->guestSessionKey($table),
@@ -483,6 +529,11 @@ class TableJoinController extends Controller
         $request->session()->put($this->guestTokenSessionKey($table), $guest->guest_token);
 
         return $guest;
+    }
+
+    private function sessionAllowsAccountViewing(string $status): bool
+    {
+        return in_array($status, ['open', 'payment_pending'], true);
     }
 
     private function activeTableResponse(string $qrToken): DiningTable|Response

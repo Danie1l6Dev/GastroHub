@@ -23,6 +23,8 @@ Route::post('/table/{qrToken}/items', [TableJoinController::class, 'item'])->nam
 Route::post('/table/{qrToken}/cart/clear', [TableJoinController::class, 'clearCart'])->name('tables.cart.clear');
 Route::post('/table/{qrToken}/ready', [TableJoinController::class, 'ready'])->name('tables.ready');
 Route::post('/table/{qrToken}/confirm', [TableJoinController::class, 'confirm'])->name('tables.confirm');
+Route::post('/table/{qrToken}/pay/individual', [TableJoinController::class, 'payIndividual'])->name('tables.pay.individual');
+Route::post('/table/{qrToken}/pay/full', [TableJoinController::class, 'payFullTable'])->name('tables.pay.full');
 Route::get('/mesa/{qrToken}', TableJoinController::class)->name('tables.legacy-join');
 
 Route::middleware('guest')->group(function (): void {
@@ -42,6 +44,7 @@ Route::prefix('admin')->middleware('auth')->name('admin.')->group(function (): v
     Route::patch('orders/sessions/{session}/main/status', [OrderController::class, 'updateSessionMainStatus'])->name('orders.sessions.main.status');
     Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
     Route::post('tables/{table}/regenerate-token', [DiningTableController::class, 'regenerateToken'])->name('tables.regenerate-token');
+    Route::post('tables/{table}/close-session', [DiningTableController::class, 'closeSession'])->name('tables.close-session');
     Route::get('tables/{table}/qr.svg', [DiningTableController::class, 'downloadQr'])->name('tables.qr.download');
     Route::get('tables/{table}/print', [DiningTableController::class, 'printQr'])->name('tables.qr.print');
     Route::resource('tables', DiningTableController::class)->except(['show'])->parameters([

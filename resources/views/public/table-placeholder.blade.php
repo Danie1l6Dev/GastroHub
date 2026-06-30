@@ -13,6 +13,8 @@
         data-clear-cart-url="{{ route('tables.cart.clear', $table->qr_token) }}"
         data-ready-url="{{ route('tables.ready', $table->qr_token) }}"
         data-confirm-url="{{ route('tables.confirm', $table->qr_token) }}"
+        data-pay-individual-url="{{ route('tables.pay.individual', $table->qr_token) }}"
+        data-pay-full-url="{{ route('tables.pay.full', $table->qr_token) }}"
         data-initial-alias="{{ $alias }}"
         data-initial-guest-id="{{ $guestId }}"
         data-initial-guest-token="{{ $guestToken }}"
@@ -101,6 +103,25 @@
                     <p data-table-total class="mt-2 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
 
+                <section data-bill-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">Cuenta</p>
+                            <h2 class="mt-1 text-lg font-semibold text-zinc-950">Pagos simulados</h2>
+                        </div>
+                        <span data-bill-status class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">Pendiente</span>
+                    </div>
+                    <div data-bill-summary class="mt-4 space-y-3"></div>
+                    <div class="mt-4 grid gap-2">
+                        <button type="button" data-pay-individual class="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40">
+                            Pagar lo mio
+                        </button>
+                        <button type="button" data-pay-full class="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
+                            Pagar toda la mesa
+                        </button>
+                    </div>
+                </section>
+
                 <section data-confirm-panel class="rounded-md border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-start justify-between gap-3">
                         <div>
@@ -149,6 +170,8 @@
             const clearCartUrl = root.dataset.clearCartUrl;
             const readyUrl = root.dataset.readyUrl;
             const confirmUrl = root.dataset.confirmUrl;
+            const payIndividualUrl = root.dataset.payIndividualUrl;
+            const payFullUrl = root.dataset.payFullUrl;
             let currentGuestId = root.dataset.initialGuestId ? Number(root.dataset.initialGuestId) : null;
             let selectedCategoryId = null;
             let state = null;
@@ -248,6 +271,7 @@
                 renderProducts();
                 renderBreakdown();
                 renderConfirmation();
+                renderBill();
             };
 
             const renderGuests = () => {
@@ -439,6 +463,77 @@
                     : '<p class="text-sm text-zinc-500">Cuando alguien agregue su alias, aparecera aqui.</p>';
             };
 
+            const renderBill = () => {
+                const bill = state.bill;
+                const panel = root.querySelector('[data-bill-panel]');
+                const summary = root.querySelector('[data-bill-summary]');
+                const status = root.querySelector('[data-bill-status]');
+                const payIndividual = root.querySelector('[data-pay-individual]');
+                const payFull = root.querySelector('[data-pay-full]');
+                const current = currentGuest();
+                const currentParticipant = bill?.participants?.find((participant) => participant.id === currentGuestId);
+                const paymentVisible = bill && bill.total > 0 && (bill.payment_ready || bill.is_paid);
+                const isJointMode = state.account_mode === 'joint';
+
+                panel.classList.toggle('hidden', !paymentVisible);
+
+                if (!paymentVisible) {
+                    return;
+                }
+
+                status.textContent = bill.is_paid ? 'Pagada' : 'Saldo pendiente';
+                status.className = `rounded-md px-2 py-1 text-xs font-semibold ${bill.is_paid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+                payIndividual.classList.toggle('hidden', isJointMode);
+                payFull.textContent = isJointMode ? 'Pagar cuenta' : 'Pagar toda la mesa';
+                payIndividual.disabled = !current || !currentParticipant?.can_pay_individual;
+                payFull.disabled = !current || !bill.can_pay_full_table;
+
+                summary.innerHTML = `
+                    <div class="grid grid-cols-3 gap-2 rounded-md bg-zinc-50 p-3 text-center">
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Total</p>
+                            <p class="mt-1 text-sm font-semibold tabular-nums text-zinc-950">${bill.total_formatted}</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Pagado</p>
+                            <p class="mt-1 text-sm font-semibold tabular-nums text-emerald-700">${bill.paid_formatted}</p>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Saldo</p>
+                            <p class="mt-1 text-sm font-semibold tabular-nums text-amber-700">${bill.balance_formatted}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        ${bill.participants.map((participant) => `
+                            <div class="rounded-md border border-zinc-200 p-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <p class="min-w-0 truncate text-sm font-semibold text-zinc-950">${escapeHtml(participant.alias)}</p>
+                                    <p class="text-sm font-semibold tabular-nums text-zinc-950">${participant.balance_formatted}</p>
+                                </div>
+                                <div class="mt-2 grid grid-cols-3 gap-2 text-xs text-zinc-500">
+                                    <span>Consumo ${participant.consumed_formatted}</span>
+                                    <span>Pagado ${participant.paid_formatted}</span>
+                                    <span class="${participant.balance === 0 ? 'text-emerald-700' : 'text-amber-700'}">${participant.balance === 0 ? 'Al dia' : 'Pendiente'}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ${bill.payments.length ? `
+                        <div class="rounded-md border border-emerald-200 bg-emerald-50 p-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Pagos registrados</p>
+                            <div class="mt-2 space-y-1">
+                                ${bill.payments.map((payment) => `
+                                    <div class="flex items-center justify-between gap-3 text-xs text-emerald-950">
+                                        <span>${escapeHtml(payment.type_label)}${payment.guest_alias ? ` - ${escapeHtml(payment.guest_alias)}` : ''}</span>
+                                        <span class="font-semibold tabular-nums">${payment.amount_formatted}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+            };
+
             const renderConfirmation = () => {
                 const readyCount = state.guests.filter((guest) => guest.is_ready).length;
                 const totalGuests = state.guests.length;
@@ -472,7 +567,7 @@
             const canEditCurrentSelection = () => {
                 const guest = currentGuest();
 
-                return Boolean(guest && !guest.is_ready);
+                return Boolean(guest && !guest.is_ready && state.session_status === 'open' && !state.bill?.is_paid);
             };
 
             const currentGuestProductQuantity = (productId) => {
@@ -603,6 +698,40 @@
                         setError('Todavia no se puede confirmar el pedido final.');
                     } finally {
                         confirmButton.disabled = false;
+                    }
+
+                    return;
+                }
+
+                const payIndividualButton = event.target.closest('[data-pay-individual]');
+                if (payIndividualButton && !payIndividualButton.disabled) {
+                    try {
+                        payIndividualButton.disabled = true;
+                        state = await request(payIndividualUrl, { method: 'POST' });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('No se pudo simular el pago individual.');
+                    } finally {
+                        payIndividualButton.disabled = false;
+                    }
+
+                    return;
+                }
+
+                const payFullButton = event.target.closest('[data-pay-full]');
+                if (payFullButton && !payFullButton.disabled) {
+                    try {
+                        payFullButton.disabled = true;
+                        state = await request(payFullUrl, { method: 'POST' });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('No se pudo simular el pago de toda la mesa.');
+                    } finally {
+                        payFullButton.disabled = false;
                     }
 
                     return;

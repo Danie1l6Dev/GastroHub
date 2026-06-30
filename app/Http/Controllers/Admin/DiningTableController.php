@@ -6,6 +6,7 @@ use App\Enums\TableStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DiningTableRequest;
 use App\Models\DiningTable;
+use App\Services\TableBillingService;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\QrCode;
@@ -18,10 +19,21 @@ use Illuminate\View\View;
 
 class DiningTableController extends Controller
 {
-    public function index(): View
+    public function index(TableBillingService $billingService): View
     {
+        $tables = DiningTable::with(['sessions' => function ($query): void {
+            $query->whereIn('status', ['open', 'payment_pending'])
+                ->with(['guests.orders.items', 'payments.tableGuest', 'diningTable']);
+        }])->orderBy('name')->get();
+
         return view('admin.tables.index', [
-            'tables' => DiningTable::orderBy('name')->get(),
+            'tables' => $tables,
+            'billingSummaries' => $tables
+                ->mapWithKeys(function (DiningTable $table) use ($billingService): array {
+                    $session = $table->sessions->first();
+
+                    return [$table->id => $session ? $billingService->summary($session) : null];
+                }),
         ]);
     }
 
@@ -67,6 +79,13 @@ class DiningTableController extends Controller
         $table->regenerateQrToken();
 
         return redirect()->route('admin.tables.index')->with('status', 'Token QR regenerado.');
+    }
+
+    public function closeSession(DiningTable $table, TableBillingService $billingService): RedirectResponse
+    {
+        $billingService->closePaidSession($table);
+
+        return redirect()->route('admin.tables.index')->with('status', 'Mesa cerrada y liberada.');
     }
 
     public function downloadQr(DiningTable $table): Response
