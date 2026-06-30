@@ -613,6 +613,19 @@ class TableQrTest extends TestCase
             ->assertJsonPath('total', 24000);
     }
 
+    public function test_joint_payment_view_invites_other_people_to_browse_menu(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+
+        $this->get(route('tables.join', $table->qr_token))
+            ->assertOk()
+            ->assertSee('Puedes ver el menu de esta mesa')
+            ->assertSee('Dile a')
+            ->assertSee('que pida lo que quieres')
+            ->assertDontSee('Esta mesa ya tiene un pedido en curso')
+            ->assertDontSee('Ya alguien entro y selecciono pago en conjunto');
+    }
+
     public function test_joint_payment_first_guest_can_confirm_final_order(): void
     {
         $table = DiningTable::factory()->create(['is_active' => true]);

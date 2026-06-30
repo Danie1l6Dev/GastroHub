@@ -30,11 +30,11 @@
 
         <section data-joint-locked-panel class="mb-5 hidden rounded-md border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
             <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Pago en conjunto activo</p>
-            <h2 class="mt-2 text-2xl font-semibold text-amber-950">Esta mesa ya tiene un pedido en curso</h2>
+            <h2 class="mt-2 text-2xl font-semibold text-amber-950">Puedes ver el menu de esta mesa</h2>
             <p class="mt-2 text-sm leading-6 text-amber-900">
-                Ya alguien entro y selecciono pago en conjunto. Pidele a
+                Dile a
                 <span data-joint-owner class="font-semibold">la persona encargada</span>
-                que agregue lo que quieres pedir.
+                que pida lo que quieres.
             </p>
         </section>
 
@@ -212,14 +212,14 @@
                 root.querySelector('[data-joint-locked-panel]').classList.toggle('hidden', !isJointOrderLocked);
                 root.querySelector('[data-joint-owner]').textContent = state.joint_order_owner_alias || 'la persona encargada';
                 root.querySelector('[data-account-mode-panel]').classList.toggle('hidden', !needsAccountMode || isJointOrderLocked);
-                root.querySelector('[data-workspace]').classList.toggle('hidden', needsAccountMode || isJointOrderLocked);
+                root.querySelector('[data-workspace]').classList.toggle('hidden', needsAccountMode);
 
-                if (needsAccountMode || isJointOrderLocked) return;
+                if (needsAccountMode) return;
 
                 const currentGuest = state.guests.find((guest) => guest.id === currentGuestId);
-                root.querySelector('[data-alias-form]').classList.toggle('hidden', state.order_confirmed);
-                root.querySelector('[data-join-locked]').classList.toggle('hidden', !state.order_confirmed);
-                root.querySelector('[data-current-guest]').classList.toggle('hidden', !currentGuest);
+                root.querySelector('[data-alias-form]').classList.toggle('hidden', state.order_confirmed || isJointOrderLocked);
+                root.querySelector('[data-join-locked]').classList.toggle('hidden', !state.order_confirmed || isJointOrderLocked);
+                root.querySelector('[data-current-guest]').classList.toggle('hidden', !currentGuest || isJointOrderLocked);
                 root.querySelector('[data-current-alias]').textContent = currentGuest?.alias || '';
                 root.querySelector('[data-release-guest]').hidden = isJointMode || state.order_confirmed || !currentGuest || currentGuest.is_ready;
                 root.querySelector('[data-ready-toggle]').hidden = !currentGuest;
@@ -233,6 +233,7 @@
                 root.querySelector('[data-people-panel]').classList.toggle('hidden', isJointMode);
                 root.querySelector('[data-account-mode-badge]').textContent = state.account_mode_label || '';
                 root.querySelector('[data-guest-count]').textContent = state.guests.length;
+                root.querySelector('[data-confirm-panel]').classList.toggle('hidden', isJointOrderLocked);
                 root.querySelectorAll('[data-table-total], [data-table-total-mobile]').forEach((node) => {
                     node.textContent = state.total_formatted || money(state.total);
                 });
@@ -277,7 +278,9 @@
                 const target = root.querySelector('[data-products]');
                 const activeGuest = currentGuest();
                 const selectionLock = root.querySelector('[data-selection-lock]');
-                const lockedMessage = state.order_confirmed
+                const lockedMessage = state.joint_order_locked
+                    ? `Dile a ${escapeHtml(state.joint_order_owner_alias || 'la persona encargada')} que pida lo que quieres. Puedes revisar el menu mientras tanto.`
+                    : state.order_confirmed
                     ? activeGuest?.is_ready
                         ? `Pedido confirmado por ${escapeHtml(state.confirmed_by_alias || 'la mesa')}. Toca "Pedir algo extra" para abrir otro carrito.`
                         : ''
