@@ -31,7 +31,17 @@
                 <div>
                     <p class="font-semibold">{{ $product->name }} <span class="text-sm font-normal text-zinc-500">({{ $product->category->name }})</span></p>
                     <p class="mt-1 text-sm text-zinc-600">{{ $product->description ?: 'Sin descripcion' }}</p>
-                    <p class="mt-1 text-xs text-zinc-500">{{ $product->formattedPrice() }} · Orden {{ $product->sort_order }} · {{ $product->is_available ? 'Disponible' : 'Agotado' }} · {{ $product->is_featured ? 'Destacado' : 'No destacado' }}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="font-semibold tabular-nums text-zinc-700">{{ $product->formattedPrice() }}</span>
+                        <span class="text-zinc-400">&middot;</span>
+                        <span class="text-zinc-500">Orden {{ $product->sort_order }}</span>
+                        <span class="rounded-full px-2 py-1 font-semibold {{ $product->is_available ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
+                            {{ $product->is_available ? 'Disponible' : 'Agotado' }}
+                        </span>
+                        @if ($product->is_featured)
+                            <span class="rounded-full bg-amber-100 px-2 py-1 font-semibold text-amber-800">Destacado</span>
+                        @endif
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <a href="{{ route('admin.products.edit', $product) }}" class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Editar</a>

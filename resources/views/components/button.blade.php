@@ -8,6 +8,6 @@
     ][$variant] ?? 'bg-zinc-950 text-white hover:bg-zinc-800';
 @endphp
 
-<button {{ $attributes->merge(['class' => 'rounded-md px-4 py-2 text-sm font-semibold transition '.$classes]) }}>
+<button {{ $attributes->merge(['class' => 'inline-flex min-h-11 items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 '.$classes]) }}>
     {{ $slot }}
 </button>

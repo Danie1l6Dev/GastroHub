@@ -58,7 +58,7 @@ class DiningTable extends Model
             } while (static::where('qr_token', $token)->whereKeyNot($this->id)->exists());
 
             $this->sessions()
-                ->where('status', 'open')
+                ->whereIn('status', ['open', 'payment_pending'])
                 ->update([
                     'status' => 'closed',
                     'closed_at' => now(),

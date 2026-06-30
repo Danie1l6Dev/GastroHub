@@ -1,58 +1,124 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# GastroHub
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Prototipo Laravel para restaurantes con pagina publica, menu digital, mesas por QR, pedidos compartidos por mesa y pagos simulados.
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel 13
+- Blade
+- Tailwind CSS con Vite
+- JavaScript ligero en la vista de mesa
+- Eloquent ORM
+- PHPUnit
+- endroid/qr-code para generar QR en SVG
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Instalacion
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+npm install
+php artisan migrate:fresh --seed
+npm run build
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Para desarrollo local:
 
-## Contributing
+```bash
+composer run dev
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+En Windows, el script de desarrollo usa `scripts/dev.mjs` y evita iniciar Laravel Pail cuando la extension `pcntl` no esta disponible.
 
-## Code of Conduct
+## Restablecer Demo
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+El comando oficial para dejar el sistema listo para presentar es:
 
-## Security Vulnerabilities
+```bash
+php artisan migrate:fresh --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Esto crea:
 
-## License
+- Restaurante configurado: GastroHub Bistro.
+- Administrador de demostracion.
+- 4 categorias.
+- 12 productos.
+- 6 mesas activas con QR.
+- Sesiones y pedidos historicos cerrados.
+- Ninguna sesion activa por defecto.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Credenciales
+
+- URL: `/login`
+- Email: `admin@restaurante.test`
+- Contrasena: `password`
+
+## Rutas Importantes
+
+- `/` pagina publica del restaurante.
+- `/menu` menu digital publico.
+- `/login` acceso administrativo.
+- `/admin` dashboard.
+- `/admin/products` productos.
+- `/admin/categories` categorias.
+- `/admin/tables` mesas, enlaces y QR.
+- `/admin/orders` pedidos agrupados por mesa.
+- `/admin/settings` configuracion del restaurante.
+- `/table/{qr_token}` entrada publica de una mesa por QR.
+
+## Recorrido De Demostracion
+
+1. Ejecuta `php artisan migrate:fresh --seed`.
+2. Entra a `/login` con `admin@restaurante.test` y `password`.
+3. Abre `/admin/products` para mostrar categorias, platos, precios, fotos de respaldo, disponibilidad y destacados.
+4. Abre `/admin/tables` y usa `Ver enlace` en una mesa disponible.
+5. En la mesa, elige `Cuentas separadas`.
+6. Entra como primer cliente, por ejemplo `Daniel`, agrega productos y marca `Enviar mi pedido y agregar otra persona`.
+7. Abre el mismo enlace en una ventana de incognito y entra como segundo cliente, por ejemplo `Ana`.
+8. Agrega productos para Ana y marca su seleccion como lista.
+9. Vuelve al navegador del encargado y confirma el pedido general.
+10. En `/admin/orders`, cambia el pedido general de `Nuevo` a `Preparando` y luego a `Entregado`.
+11. Vuelve a la mesa y revisa que aparezca la cuenta cuando todos los pedidos esten entregados.
+12. Prueba `Pagar lo mio` en cuentas separadas o crea otra mesa con `Pago en conjunto` para ver solo `Pagar cuenta`.
+13. En `/admin/tables`, cierra la mesa cuando la cuenta quede pagada.
+
+## Decisiones Tecnicas
+
+- Los precios se guardan como enteros en pesos colombianos.
+- Los pedidos guardan copia historica de nombre y precio del producto.
+- Las rutas publicas de mesa usan `qr_token`; los participantes usan `guest_token`.
+- La cuenta se calcula en backend mediante `TableBillingService`.
+- Las transiciones de pedidos viven en `OrderStatusService`.
+- El panel de pedidos agrupa por sesion de mesa y separa pedido general de adicionales.
+- Los pagos son simulados y se marcan como pagados inmediatamente.
+- La mesa no se cierra automaticamente al pagar; el administrador confirma el cierre.
+
+## Comandos De Calidad
+
+```bash
+php artisan test
+vendor/bin/pint --test
+npm run build
+```
+
+## Limitaciones Del Prototipo
+
+- No hay pagos reales ni pasarela.
+- No hay facturacion electronica.
+- No hay inventario.
+- No hay reservas, domicilios ni multiples sedes.
+- No hay roles complejos; existe un unico tipo de administrador.
+- La actualizacion de pedidos es manual, sin WebSockets.
+- Las imagenes de demo usan respaldo local cuando no se carga una imagen propia.
+
+## Futuras Funcionalidades Posibles
+
+- Notificaciones en tiempo real para cocina.
+- Impresion de comandas.
+- Variantes o modificadores de productos.
+- Propinas y descuentos.
+- Reportes comerciales por rango de fechas.
+- Multiusuario administrativo con permisos.
+- Integracion con pagos reales.

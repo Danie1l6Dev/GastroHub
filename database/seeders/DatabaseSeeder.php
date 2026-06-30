@@ -101,5 +101,7 @@ class DatabaseSeeder extends Seeder
                 ]
             );
         }
+
+        $this->call(DemoRestaurantSeeder::class);
     }
 }

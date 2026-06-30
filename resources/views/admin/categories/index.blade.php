@@ -15,7 +15,14 @@
                 <div>
                     <p class="font-semibold">{{ $category->name }}</p>
                     <p class="mt-1 text-sm text-zinc-600">{{ $category->description ?: 'Sin descripcion' }}</p>
-                    <p class="mt-1 text-xs text-zinc-500">{{ $category->products_count }} productos · Orden {{ $category->sort_order }} · {{ $category->is_active ? 'Activa' : 'Inactiva' }}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span class="text-zinc-500">{{ $category->products_count }} productos</span>
+                        <span class="text-zinc-400">&middot;</span>
+                        <span class="text-zinc-500">Orden {{ $category->sort_order }}</span>
+                        <span class="rounded-full px-2 py-1 font-semibold {{ $category->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
+                            {{ $category->is_active ? 'Activa' : 'Inactiva' }}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <a href="{{ route('admin.categories.edit', $category) }}" class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Editar</a>

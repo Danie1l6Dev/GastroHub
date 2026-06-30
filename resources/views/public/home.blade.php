@@ -52,7 +52,7 @@
         <div class="mt-10 flex items-end justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-semibold">Platos destacados</h2>
-                <p class="mt-1 text-sm text-zinc-600">Seccion provisional preparada para conectarse con productos.</p>
+                <p class="mt-1 text-sm text-zinc-600">Favoritos reales del menu para abrir la conversacion en mesa.</p>
             </div>
             <a href="{{ route('menu') }}" class="text-sm font-semibold" style="color: {{ $primaryColor }};">Ver menu</a>
         </div>
@@ -74,7 +74,7 @@
                     </div>
                 </article>
             @empty
-                <p class="rounded-md border border-dashed border-zinc-300 bg-white p-6 text-sm text-zinc-600">Aun no hay productos cargados.</p>
+                <p class="rounded-md border border-dashed border-zinc-300 bg-white p-6 text-sm text-zinc-600">Aun no hay productos destacados.</p>
             @endforelse
         </div>
     </section>

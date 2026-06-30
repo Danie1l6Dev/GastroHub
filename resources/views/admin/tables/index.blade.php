@@ -18,9 +18,15 @@
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h2 class="text-lg font-semibold">{{ $table->name }}</h2>
-                        <p class="mt-1 text-sm text-zinc-600">
-                            Codigo {{ $table->code }} · Capacidad: {{ $table->capacity ?: 'Sin definir' }} · {{ $table->is_active ? 'Activa' : 'Inactiva' }} · {{ $table->current_status->label() }}
-                        </p>
+                        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                            <span class="font-semibold text-zinc-700">Codigo {{ $table->code }}</span>
+                            <span class="text-zinc-400">&middot;</span>
+                            <span class="text-zinc-500">Capacidad: {{ $table->capacity ?: 'Sin definir' }}</span>
+                            <span class="rounded-full px-2 py-1 font-semibold {{ $table->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
+                                {{ $table->is_active ? 'Activa' : 'Inactiva' }}
+                            </span>
+                            <span class="rounded-full bg-zinc-100 px-2 py-1 font-semibold text-zinc-700">{{ $table->current_status->label() }}</span>
+                        </div>
                     </div>
                     <a href="{{ route('admin.tables.edit', $table) }}" class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Editar</a>
                 </div>
