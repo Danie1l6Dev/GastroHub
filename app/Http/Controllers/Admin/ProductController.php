@@ -16,6 +16,12 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $products = Product::with('category')
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $query->where(function ($query) use ($request): void {
+                    $query->where('name', 'like', '%'.$request->string('q')->toString().'%')
+                        ->orWhere('description', 'like', '%'.$request->string('q')->toString().'%');
+                });
+            })
             ->when($request->filled('category_id'), fn ($query) => $query->where('category_id', $request->integer('category_id')))
             ->when($request->filled('availability'), function ($query) use ($request): void {
                 $query->where('is_available', $request->string('availability')->toString() === 'available');
@@ -27,7 +33,7 @@ class ProductController extends Controller
         return view('admin.products.index', [
             'products' => $products,
             'categories' => Category::orderBy('sort_order')->orderBy('name')->get(),
-            'filters' => $request->only(['category_id', 'availability']),
+            'filters' => $request->only(['q', 'category_id', 'availability']),
         ]);
     }
 

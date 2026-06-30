@@ -3,11 +3,11 @@
 @section('content')
     <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Cocina y servicio</p>
-            <h1 class="mt-2 text-3xl font-semibold">Mesas con pedido</h1>
-            <p class="mt-2 max-w-2xl text-sm text-zinc-600">Cada mesa muestra su pedido general y, debajo, los adicionales confirmados despues.</p>
+            <p class="gh-page-kicker">Cocina y servicio</p>
+            <h1 class="gh-page-title">Mesas con pedido</h1>
+            <p class="gh-page-copy">Cada mesa muestra su pedido general y los adicionales confirmados despues.</p>
         </div>
-        <a href="{{ route('admin.orders.index', request()->query()) }}" class="inline-flex min-h-11 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold hover:bg-zinc-50">
+        <a href="{{ route('admin.orders.index', request()->query()) }}" class="gh-btn gh-btn-secondary">
             Actualizar
         </a>
     </div>
@@ -18,10 +18,24 @@
         </x-alert>
     @endif
 
-    <form method="GET" action="{{ route('admin.orders.index') }}" class="mt-6 grid gap-3 rounded-md border border-zinc-200 bg-white p-4 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
+    @php
+        $statusCounts = $tableGroups
+            ->flatMap(fn ($group) => $group['sections'])
+            ->countBy('status');
+    @endphp
+
+    <div class="mt-6 flex flex-wrap gap-2">
+        @foreach ($orderStatuses->labels() as $status => $label)
+            <x-badge :tone="['new' => 'warning', 'preparing' => 'info', 'delivered' => 'success', 'cancelled' => 'neutral'][$status] ?? 'neutral'">
+                {{ $label }} · {{ (int) ($statusCounts[$status] ?? 0) }}
+            </x-badge>
+        @endforeach
+    </div>
+
+    <form method="GET" action="{{ route('admin.orders.index') }}" class="gh-panel mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
         <label class="text-sm font-medium text-zinc-700">
             <span class="mb-1 block">Estado</span>
-            <select name="status" class="min-h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+            <select name="status" class="gh-field">
                 <option value="">Todos los estados</option>
                 @foreach ($orderStatuses->labels() as $status => $label)
                     <option value="{{ $status }}" @selected(($filters['status'] ?? '') === $status)>{{ $label }}</option>
@@ -31,7 +45,7 @@
 
         <label class="text-sm font-medium text-zinc-700">
             <span class="mb-1 block">Mesa</span>
-            <select name="table_id" class="min-h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+            <select name="table_id" class="gh-field">
                 <option value="">Todas las mesas</option>
                 @foreach ($tables as $table)
                     <option value="{{ $table->id }}" @selected((string) ($filters['table_id'] ?? '') === (string) $table->id)>{{ $table->name }}</option>
@@ -41,14 +55,14 @@
 
         <label class="text-sm font-medium text-zinc-700">
             <span class="mb-1 block">Fecha</span>
-            <select name="date" class="min-h-11 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm">
+            <select name="date" class="gh-field">
                 <option value="today" @selected(($filters['date'] ?? 'today') === 'today')>Hoy</option>
                 <option value="all" @selected(($filters['date'] ?? 'today') === 'all')>Todos</option>
             </select>
         </label>
 
-        <button class="min-h-11 self-end rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Filtrar</button>
-        <a href="{{ route('admin.orders.index') }}" class="inline-flex min-h-11 items-center justify-center self-end rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">Limpiar</a>
+        <button class="gh-btn gh-btn-primary self-end">Filtrar</button>
+        <a href="{{ route('admin.orders.index') }}" class="gh-btn gh-btn-secondary self-end">Limpiar</a>
     </form>
 
     <div class="mt-5 flex flex-col gap-2 text-sm text-zinc-600 sm:flex-row sm:items-center sm:justify-between">
@@ -62,7 +76,7 @@
                 $session = $group['session'];
             @endphp
 
-            <article class="overflow-hidden rounded-md border border-zinc-200 bg-white">
+            <article class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-950/[0.04]">
                 <div class="grid gap-4 border-b border-zinc-100 bg-zinc-50/70 p-4 xl:grid-cols-[1fr_auto] xl:items-center">
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
@@ -98,7 +112,7 @@
                                 : 'border-emerald-200 bg-emerald-50 text-emerald-800';
                         @endphp
 
-                        <section class="rounded-md border border-zinc-200">
+                        <section class="rounded-2xl border border-zinc-200">
                             <div class="grid gap-3 border-b border-zinc-100 px-3 py-3 lg:grid-cols-[1fr_auto] lg:items-center">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 {{ $badgeClasses }}">{{ $ticket['status_label'] }}</span>
@@ -113,7 +127,7 @@
                             <div class="grid gap-4 p-3 xl:grid-cols-[1fr_14rem] xl:items-start">
                                 <div class="grid gap-2">
                                     @foreach ($ticket['items'] as $item)
-                                        <div class="rounded-md bg-zinc-50 px-3 py-2">
+                                        <div class="rounded-2xl bg-zinc-50 px-3 py-2">
                                             <div class="flex items-start justify-between gap-3">
                                                 <div>
                                                     <p class="text-sm font-semibold text-zinc-950">{{ $item['quantity'] }} x {{ $item['product_name'] }}</p>
@@ -139,7 +153,7 @@
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="status" value="{{ $nextStatus }}">
-                                            <button class="min-h-10 rounded-md border px-3 py-2 text-sm font-semibold transition {{ $nextStatus === 'cancelled' ? 'border-red-200 text-red-700 hover:bg-red-50' : 'border-zinc-200 text-zinc-800 hover:bg-zinc-50' }}">
+                                            <button class="gh-btn min-h-10 px-3 {{ $nextStatus === 'cancelled' ? 'gh-btn-danger' : 'gh-btn-secondary' }}" @if($nextStatus === 'cancelled') data-confirm="Cancelar este pedido?" @endif>
                                                 {{ $nextStatus === 'preparing' ? 'Preparar' : ($nextStatus === 'delivered' ? 'Entregar' : 'Cancelar') }}
                                             </button>
                                         </form>
@@ -153,10 +167,7 @@
                 </div>
             </article>
         @empty
-            <div class="rounded-md border border-zinc-200 bg-white p-8 text-center">
-                <p class="text-lg font-semibold text-zinc-950">No hay mesas para estos filtros.</p>
-                <p class="mt-2 text-sm text-zinc-600">Los pedidos generales aparecen aqui cuando el encargado confirma toda la mesa.</p>
-            </div>
+            <x-empty-state title="No hay mesas para estos filtros" description="Los pedidos generales aparecen aqui cuando el encargado confirma toda la mesa." />
         @endforelse
     </section>
 @endsection

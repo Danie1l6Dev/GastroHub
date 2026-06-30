@@ -19,16 +19,18 @@
         data-initial-guest-id="{{ $guestId }}"
         data-initial-guest-token="{{ $guestToken }}"
     >
-        <div class="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Mesa compartida</p>
-                <h1 class="mt-2 text-3xl font-semibold text-zinc-950 sm:text-4xl">{{ $table->name }}</h1>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-600">Todos ven quienes estan en la mesa, que pidio cada persona y el total general.</p>
+        <div class="mb-5 overflow-hidden rounded-3xl bg-zinc-950 p-5 text-white shadow-xl shadow-zinc-950/10 sm:mb-6 sm:p-7">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">Mesa compartida</p>
+                    <h1 class="mt-2 text-4xl font-semibold tracking-tight sm:text-5xl">{{ $table->name }}</h1>
+                    <p class="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">Todos ven quienes estan en la mesa, que pidio cada persona y el total general.</p>
+                </div>
+                <a href="{{ route('menu') }}" class="gh-btn rounded-2xl bg-white text-zinc-950 hover:bg-zinc-100">Ver menu completo</a>
             </div>
-            <a href="{{ route('menu') }}" class="inline-flex min-h-11 items-center justify-center rounded-md border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 shadow-sm hover:bg-zinc-50">Ver menu completo</a>
         </div>
 
-        <div data-error class="mb-4 hidden rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"></div>
+        <div data-error class="mb-4 hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"></div>
 
         <section data-joint-locked-panel class="mb-5 hidden rounded-md border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
             <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Pago en conjunto activo</p>
@@ -138,10 +140,18 @@
             </aside>
 
             <div class="space-y-4">
-                <section class="overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm">
+                <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
                     <div class="border-b border-zinc-100 p-4 sm:p-5">
-                        <h2 class="text-xl font-semibold text-zinc-950">Seleccionar platos</h2>
-                        <p class="mt-1 text-sm leading-6 text-zinc-600">Elige una seccion y agrega tus platos. Los agotados se ven, pero no se pueden seleccionar.</p>
+                        <div class="grid gap-4 lg:grid-cols-[1fr_16rem] lg:items-end">
+                            <div>
+                                <h2 class="text-xl font-semibold text-zinc-950">Seleccionar platos</h2>
+                                <p class="mt-1 text-sm leading-6 text-zinc-600">Elige una seccion y agrega tus platos. Los agotados se ven, pero no se pueden seleccionar.</p>
+                            </div>
+                            <label class="block">
+                                <span class="sr-only">Buscar platos</span>
+                                <input data-table-menu-search type="search" placeholder="Buscar plato" class="gh-field">
+                            </label>
+                        </div>
                         <p data-selection-lock class="mt-3 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950"></p>
                     </div>
                     <div data-products class="p-4 sm:p-5"></div>
@@ -172,6 +182,7 @@
             const confirmUrl = root.dataset.confirmUrl;
             const payIndividualUrl = root.dataset.payIndividualUrl;
             const payFullUrl = root.dataset.payFullUrl;
+            const menuSearch = root.querySelector('[data-table-menu-search]');
             let currentGuestId = root.dataset.initialGuestId ? Number(root.dataset.initialGuestId) : null;
             let selectedCategoryId = null;
             let state = null;
@@ -186,6 +197,14 @@
                 const box = root.querySelector('[data-error]');
                 box.textContent = message;
                 box.classList.toggle('hidden', !message);
+            };
+
+            const showToast = (message) => {
+                const toast = document.createElement('div');
+                toast.className = 'gh-toast gh-reveal';
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                window.setTimeout(() => toast.remove(), 2200);
             };
 
             const escapeHtml = (value = '') => String(value)
@@ -331,7 +350,12 @@
                 }
 
                 const selectedCategory = state.categories.find((category) => category.id === selectedCategoryId);
-                const products = selectedCategory?.products || [];
+                const query = menuSearch?.value.trim().toLowerCase() || '';
+                const products = (selectedCategory?.products || []).filter((product) => {
+                    if (!query) return true;
+
+                    return `${product.name} ${product.description || ''}`.toLowerCase().includes(query);
+                });
 
                 target.innerHTML = `
                     <div class="overflow-x-auto border-b border-zinc-100 pb-4">
@@ -359,7 +383,7 @@
                             </div>
                         </div>
                         <div class="mt-4 grid gap-3 md:grid-cols-2">
-                            ${products.length ? products.map((product) => productCard(product)).join('') : '<p class="rounded-md bg-zinc-50 p-4 text-sm text-zinc-500 md:col-span-2">Esta seccion aun no tiene productos.</p>'}
+                            ${products.length ? products.map((product) => productCard(product)).join('') : '<p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-500 md:col-span-2">No hay platos que coincidan en esta seccion.</p>'}
                         </div>
                     </section>
                 `;
@@ -371,16 +395,16 @@
                 const imageUrl = escapeHtml(product.image_url || '');
 
                 return `
-                    <article class="overflow-hidden rounded-md border border-zinc-200 bg-white shadow-sm ${product.is_available ? '' : 'opacity-75'}">
+                    <article class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/[0.08] ${product.is_available ? '' : 'opacity-75'}">
                         <div class="flex flex-col gap-3 p-3 sm:flex-row">
-                            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" loading="lazy" class="pointer-events-none h-40 w-full shrink-0 rounded-md object-cover outline outline-1 -outline-offset-1 outline-black/10 sm:h-28 sm:w-28">
+                            <img src="${imageUrl}" alt="${escapeHtml(product.name)}" loading="lazy" class="pointer-events-none h-40 w-full shrink-0 rounded-xl object-cover outline outline-1 -outline-offset-1 outline-black/10 sm:h-28 sm:w-28">
                             <div class="flex min-w-0 flex-1 flex-col">
                                 <div class="flex items-start justify-between gap-3">
                                     <div class="min-w-0">
                                         <h4 class="font-semibold leading-5 text-zinc-950">${escapeHtml(product.name)}</h4>
                                         ${description}
                                     </div>
-                                    ${product.is_available ? '' : '<span class="shrink-0 rounded-md bg-zinc-200 px-2 py-1 text-[11px] font-semibold text-zinc-700">Agotado</span>'}
+                                    ${product.is_available ? '' : '<span class="shrink-0 rounded-full bg-zinc-200 px-2 py-1 text-[11px] font-semibold text-zinc-700">Agotado</span>'}
                                 </div>
                                 <div class="mt-auto flex flex-col gap-3 pt-3 sm:flex-row sm:items-end sm:justify-between">
                                     <p class="text-sm font-semibold tabular-nums text-zinc-950">${product.price_formatted}</p>
@@ -710,6 +734,7 @@
                         state = await request(payIndividualUrl, { method: 'POST' });
                         currentGuestId = state.current_guest_id;
                         render();
+                        showToast('Pago individual simulado.');
                         setError('');
                     } catch (error) {
                         setError('No se pudo simular el pago individual.');
@@ -727,6 +752,7 @@
                         state = await request(payFullUrl, { method: 'POST' });
                         currentGuestId = state.current_guest_id;
                         render();
+                        showToast('Cuenta pagada correctamente.');
                         setError('');
                     } catch (error) {
                         setError('No se pudo simular el pago de toda la mesa.');
@@ -758,11 +784,16 @@
 
                 const clearCartButton = event.target.closest('[data-clear-cart]');
                 if (clearCartButton) {
+                    if (!window.confirm('Vaciar tu carrito actual?')) {
+                        return;
+                    }
+
                     try {
                         clearCartButton.disabled = true;
                         state = await request(clearCartUrl, { method: 'POST' });
                         currentGuestId = state.current_guest_id;
                         render();
+                        showToast('Carrito vaciado.');
                         setError('');
                     } catch (error) {
                         setError('No se pudo vaciar el carrito.');
@@ -794,6 +825,7 @@
                     });
                     currentGuestId = state.current_guest_id;
                     render();
+                    showToast(Number(button.dataset.delta) > 0 ? 'Producto agregado.' : 'Producto actualizado.');
                     setError('');
                 } catch (error) {
                     setError('Primero ingresa tu alias o revisa si el producto esta disponible.');
@@ -823,6 +855,8 @@
                     noteInput.disabled = false;
                 }
             });
+
+            menuSearch?.addEventListener('input', renderProducts);
 
             loadState();
             setInterval(loadState, 3000);

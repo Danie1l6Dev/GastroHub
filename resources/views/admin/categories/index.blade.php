@@ -1,42 +1,44 @@
 @extends('layouts.admin', ['title' => 'Categorias'])
 
 @section('content')
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-            <h1 class="text-3xl font-semibold">Categorias</h1>
-            <p class="mt-1 text-sm text-zinc-600">Organiza el menu digital por orden y disponibilidad.</p>
+            <p class="gh-page-kicker">Menu</p>
+            <h1 class="gh-page-title">Categorias</h1>
+            <p class="gh-page-copy">Organiza el menu por secciones claras para que el cliente encuentre rapido lo que quiere.</p>
         </div>
-        <a href="{{ route('admin.categories.create') }}" class="rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">Nueva categoria</a>
+        <a href="{{ route('admin.categories.create') }}" class="gh-btn gh-btn-primary">Nueva categoria</a>
     </div>
 
-    <div class="mt-6 overflow-hidden rounded-md border border-zinc-200 bg-white">
+    <div class="mt-6 grid gap-4 lg:grid-cols-2">
         @forelse ($categories as $category)
-            <div class="grid gap-3 border-b border-zinc-100 px-5 py-4 last:border-b-0 md:grid-cols-[1fr_auto] md:items-center">
-                <div>
-                    <p class="font-semibold">{{ $category->name }}</p>
-                    <p class="mt-1 text-sm text-zinc-600">{{ $category->description ?: 'Sin descripcion' }}</p>
-                    <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                        <span class="text-zinc-500">{{ $category->products_count }} productos</span>
-                        <span class="text-zinc-400">&middot;</span>
-                        <span class="text-zinc-500">Orden {{ $category->sort_order }}</span>
-                        <span class="rounded-full px-2 py-1 font-semibold {{ $category->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
-                            {{ $category->is_active ? 'Activa' : 'Inactiva' }}
-                        </span>
+            <article class="gh-panel gh-card-hover">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h2 class="truncate text-lg font-semibold">{{ $category->name }}</h2>
+                        <p class="mt-2 text-sm leading-6 text-zinc-600">{{ $category->description ?: 'Sin descripcion' }}</p>
                     </div>
+                    <x-badge :tone="$category->is_active ? 'success' : 'neutral'">{{ $category->is_active ? 'Activa' : 'Inactiva' }}</x-badge>
                 </div>
-                <div class="flex gap-2">
-                    <a href="{{ route('admin.categories.edit', $category) }}" class="rounded-md border border-zinc-200 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Editar</a>
+                <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                    <span class="rounded-full bg-zinc-100 px-2.5 py-1 font-semibold text-zinc-700">{{ $category->products_count }} productos</span>
+                    <span class="rounded-full bg-zinc-100 px-2.5 py-1 font-semibold text-zinc-700">Orden {{ $category->sort_order }}</span>
+                </div>
+                <div class="mt-5 flex flex-wrap gap-2">
+                    <a href="{{ route('admin.categories.edit', $category) }}" class="gh-btn gh-btn-secondary min-h-10 px-3">Editar</a>
                     @if ($category->products_count === 0)
                         <form method="POST" action="{{ route('admin.categories.destroy', $category) }}">
                             @csrf
                             @method('DELETE')
-                            <button class="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Eliminar</button>
+                            <button class="gh-btn gh-btn-danger min-h-10 px-3" data-confirm="Eliminar esta categoria?">Eliminar</button>
                         </form>
                     @endif
                 </div>
-            </div>
+            </article>
         @empty
-            <p class="p-5 text-sm text-zinc-600">No hay categorias.</p>
+            <x-empty-state title="No hay categorias" description="Crea secciones para organizar el menu publico." class="lg:col-span-2">
+                <a href="{{ route('admin.categories.create') }}" class="gh-btn gh-btn-primary">Nueva categoria</a>
+            </x-empty-state>
         @endforelse
     </div>
 @endsection

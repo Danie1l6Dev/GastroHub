@@ -7,3 +7,124 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    :focus-visible {
+        outline: 3px solid rgb(16 185 129 / 0.28);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .gh-surface {
+        @apply rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-950/[0.04];
+    }
+
+    .gh-panel {
+        @apply rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-sm shadow-zinc-950/[0.04];
+    }
+
+    .gh-muted-panel {
+        @apply rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-5;
+    }
+
+    .gh-page-kicker {
+        @apply text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700;
+    }
+
+    .gh-page-title {
+        @apply mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl;
+    }
+
+    .gh-page-copy {
+        @apply mt-2 max-w-2xl text-sm leading-6 text-zinc-600;
+    }
+
+    .gh-btn {
+        @apply inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition duration-200 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .gh-btn-primary {
+        @apply bg-zinc-950 text-white shadow-sm shadow-zinc-950/10 hover:bg-zinc-800;
+    }
+
+    .gh-btn-secondary {
+        @apply border border-zinc-200 bg-white text-zinc-900 shadow-sm shadow-zinc-950/[0.03] hover:bg-zinc-50;
+    }
+
+    .gh-btn-danger {
+        @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
+    }
+
+    .gh-field {
+        @apply mt-1 min-h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-950 transition focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100;
+    }
+
+    .gh-label {
+        @apply text-sm font-medium text-zinc-800;
+    }
+
+    .gh-help {
+        @apply mt-1 text-xs leading-5 text-zinc-500;
+    }
+
+    .gh-error {
+        @apply mt-1 text-sm text-red-700;
+    }
+
+    .gh-badge {
+        @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset;
+    }
+
+    .gh-card-hover {
+        @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/[0.08];
+    }
+
+    .gh-empty {
+        @apply rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-600;
+    }
+
+    .gh-price {
+        @apply font-semibold tabular-nums tracking-tight text-zinc-950;
+    }
+
+    .gh-reveal {
+        animation: gh-fade-up 260ms cubic-bezier(0.23, 1, 0.32, 1) both;
+    }
+
+    .gh-toast {
+        @apply fixed right-4 top-4 z-50 max-w-sm rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-950/10;
+    }
+}
+
+@keyframes gh-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

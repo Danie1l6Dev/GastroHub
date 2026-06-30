@@ -1,48 +1,59 @@
 @extends('layouts.admin', ['title' => $table->exists ? 'Editar mesa' : 'Nueva mesa'])
 
 @section('content')
-    <h1 class="text-3xl font-semibold">{{ $table->exists ? 'Editar mesa' : 'Nueva mesa' }}</h1>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="gh-page-kicker">Salon</p>
+            <h1 class="gh-page-title">{{ $table->exists ? 'Editar mesa' : 'Nueva mesa' }}</h1>
+            <p class="gh-page-copy">Configura el nombre visible, codigo interno y estado de una mesa QR.</p>
+        </div>
+        <a href="{{ route('admin.tables.index') }}" class="gh-btn gh-btn-secondary">Volver</a>
+    </div>
 
-    <form method="POST" action="{{ $table->exists ? route('admin.tables.update', $table) : route('admin.tables.store') }}" class="mt-6 max-w-2xl space-y-5 rounded-md border border-zinc-200 bg-white p-5">
+    <form method="POST" action="{{ $table->exists ? route('admin.tables.update', $table) : route('admin.tables.store') }}" class="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
         @csrf
         @if ($table->exists)
             @method('PUT')
         @endif
 
-        <x-form-input label="Nombre visible" name="name" :value="$table->name" required />
-        <x-form-input label="Codigo interno" name="code" :value="$table->code" required />
+        <section class="gh-panel space-y-5">
+            <x-form-input label="Nombre visible" name="name" :value="$table->name" required placeholder="Ej. Mesa terraza 1" />
+            <x-form-input label="Codigo interno" name="code" :value="$table->code" required placeholder="Ej. T01" />
+            <x-form-input label="Capacidad" name="capacity" type="number" min="1" max="30" :value="$table->capacity" />
 
-        <div>
-            <label class="text-sm font-medium" for="capacity">Capacidad</label>
-            <input id="capacity" name="capacity" type="number" min="1" max="30" value="{{ old('capacity', $table->capacity) }}" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2">
-            @error('capacity') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-        </div>
-
-        <div>
-            <label class="text-sm font-medium" for="current_status">Estado actual</label>
-            <select id="current_status" name="current_status" class="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2" required>
-                @foreach ($statuses as $status)
-                    <option value="{{ $status->value }}" @selected(old('current_status', $table->current_status?->value ?? 'available') === $status->value)>{{ $status->label() }}</option>
-                @endforeach
-            </select>
-            @error('current_status') <p class="mt-1 text-sm text-red-700">{{ $message }}</p> @enderror
-        </div>
-
-        @if ($table->exists)
             <div>
-                <p class="text-sm font-medium">URL QR</p>
-                <p class="mt-1 rounded-md bg-zinc-100 p-3 text-xs text-zinc-700">{{ $table->qrUrl() }}</p>
+                <label class="gh-label" for="current_status">Estado actual</label>
+                <select id="current_status" name="current_status" class="gh-field" required>
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->value }}" @selected(old('current_status', $table->current_status?->value ?? 'available') === $status->value)>{{ $status->label() }}</option>
+                    @endforeach
+                </select>
+                @error('current_status') <p class="gh-error">{{ $message }}</p> @enderror
             </div>
-        @endif
 
-        <label class="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $table->is_active ?? true)) class="rounded border-zinc-300">
-            Activa
-        </label>
+            <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
+                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $table->is_active ?? true)) class="rounded border-zinc-300 text-emerald-600">
+                Mesa activa para recibir clientes
+            </label>
 
-        <div class="flex gap-2">
-            <x-button>Guardar</x-button>
-            <a href="{{ route('admin.tables.index') }}" class="rounded-md border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50">Cancelar</a>
-        </div>
+            <div class="flex flex-wrap gap-2">
+                <x-button>Guardar mesa</x-button>
+                <a href="{{ route('admin.tables.index') }}" class="gh-btn gh-btn-secondary">Cancelar</a>
+            </div>
+        </section>
+
+        <aside class="gh-panel self-start">
+            <p class="text-sm font-semibold">Acceso QR</p>
+            @if ($table->exists)
+                <p class="mt-2 text-sm leading-6 text-zinc-600">Este enlace se comparte con clientes para entrar a la mesa.</p>
+                <p class="mt-4 break-all rounded-2xl bg-zinc-100 p-3 text-xs text-zinc-700">{{ $table->qrUrl() }}</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <a href="{{ route('admin.tables.qr.download', $table) }}" class="gh-btn gh-btn-secondary min-h-10 px-3">Descargar QR</a>
+                    <a href="{{ route('admin.tables.qr.print', $table) }}" target="_blank" rel="noopener noreferrer" class="gh-btn gh-btn-secondary min-h-10 px-3">Imprimir</a>
+                </div>
+            @else
+                <p class="mt-2 text-sm leading-6 text-zinc-600">El token QR se genera automaticamente al crear la mesa.</p>
+            @endif
+        </aside>
     </form>
 @endsection
