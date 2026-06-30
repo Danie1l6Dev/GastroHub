@@ -14,6 +14,7 @@
         data-confirm-url="{{ route('tables.confirm', $table->qr_token) }}"
         data-initial-alias="{{ $alias }}"
         data-initial-guest-id="{{ $guestId }}"
+        data-initial-guest-token="{{ $guestToken }}"
     >
         <div class="mb-5 flex flex-col gap-4 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -72,11 +73,11 @@
                     <div data-current-guest class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 p-3">
                         <p class="text-sm text-emerald-900">Ingresaste como</p>
                         <p data-current-alias class="mt-1 text-lg font-semibold text-emerald-950"></p>
-                        <button type="button" data-release-guest class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-100 active:scale-[0.98]">
-                            Listo, agregar otra persona
-                        </button>
                         <button type="button" data-ready-toggle class="mt-3 inline-flex min-h-10 w-full items-center justify-center rounded-md bg-emerald-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-900 active:scale-[0.98]">
                             Mi seleccion esta lista
+                        </button>
+                        <button type="button" data-release-guest class="mt-2 inline-flex min-h-10 w-full items-center justify-center rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-100 active:scale-[0.98]">
+                            Agregar otra sin marcar lista
                         </button>
                     </div>
                 </section>
@@ -218,9 +219,13 @@
                 root.querySelector('[data-join-locked]').classList.toggle('hidden', !state.order_confirmed);
                 root.querySelector('[data-current-guest]').classList.toggle('hidden', !currentGuest);
                 root.querySelector('[data-current-alias]').textContent = currentGuest?.alias || '';
-                root.querySelector('[data-release-guest]').hidden = isJointMode || state.order_confirmed;
+                root.querySelector('[data-release-guest]').hidden = isJointMode || state.order_confirmed || !currentGuest || currentGuest.is_ready;
                 root.querySelector('[data-ready-toggle]').hidden = !currentGuest || state.order_confirmed;
-                root.querySelector('[data-ready-toggle]').textContent = currentGuest?.is_ready ? 'Editar mi seleccion' : 'Mi seleccion esta lista';
+                root.querySelector('[data-ready-toggle]').textContent = currentGuest?.is_ready
+                    ? 'Editar mi seleccion'
+                    : isJointMode
+                        ? 'Mi seleccion esta lista'
+                        : 'Mi seleccion esta lista y agregar otra';
                 root.querySelector('[data-people-panel]').classList.toggle('hidden', isJointMode);
                 root.querySelector('[data-account-mode-badge]').textContent = state.account_mode_label || '';
                 root.querySelector('[data-guest-count]').textContent = state.guests.length;
@@ -240,7 +245,10 @@
                     ? state.guests.map((guest) => `
                         <div class="rounded-md border p-3 ${guest.id === currentGuestId ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}">
                             <div class="flex items-center justify-between gap-3">
-                                <p class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.alias)}</p>
+                                <div class="min-w-0">
+                                    <p class="truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</p>
+                                    ${guest.is_alias_duplicate ? '<p class="mt-1 text-[11px] font-semibold text-amber-700">Alias repetido</p>' : ''}
+                                </div>
                                 <div class="shrink-0 text-right">
                                     <p class="text-sm font-semibold tabular-nums">${guest.subtotal_formatted}</p>
                                     <p class="mt-1 text-[11px] font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Listo' : 'Pendiente'}</p>
@@ -250,7 +258,7 @@
                                 <p class="text-xs text-zinc-500">${guest.items.length} productos seleccionados${guest.id === state.coordinator_guest_id ? ' · Encargado' : ''}</p>
                                 <button
                                     type="button"
-                                    data-select-guest="${guest.id}"
+                                    data-select-guest="${guest.guest_token}"
                                     class="inline-flex min-h-9 items-center justify-center rounded-md border px-3 py-1.5 text-xs font-semibold transition active:scale-[0.98] ${guest.id === currentGuestId ? 'border-emerald-200 bg-white text-emerald-950' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
                                 >
                                     ${guest.id === currentGuestId ? 'Seleccionado' : 'Seleccionar'}
@@ -358,7 +366,7 @@
                     ? state.guests.map((guest) => `
                         <section class="rounded-md border border-zinc-200 p-4">
                             <div class="flex items-center justify-between gap-3">
-                                <h3 class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.alias)}</h3>
+                                <h3 class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</h3>
                                 <p class="font-semibold tabular-nums">${guest.subtotal_formatted}</p>
                             </div>
                             <div class="mt-3 divide-y divide-zinc-100">
@@ -519,8 +527,8 @@
                 if (selectGuestButton) {
                     try {
                         selectGuestButton.disabled = true;
-                        const guestId = Number(selectGuestButton.dataset.selectGuest);
-                        state = await request(selectGuestUrl.replace('__guest__', guestId), { method: 'POST' });
+                        const guestToken = selectGuestButton.dataset.selectGuest;
+                        state = await request(selectGuestUrl.replace('__guest__', guestToken), { method: 'POST' });
                         currentGuestId = state.current_guest_id;
                         root.querySelector('#alias').value = state.guests.find((guest) => guest.id === currentGuestId)?.alias || '';
                         render();

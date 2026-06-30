@@ -14,7 +14,7 @@ class TableAliasRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'alias' => ['required', 'string', 'min:2', 'max:80'],
+            'alias' => ['required', 'string', 'min:2', 'max:80', 'regex:/^[\pL\pN\s.\-_]+$/u'],
         ];
     }
 
@@ -23,6 +23,7 @@ class TableAliasRequest extends FormRequest
         return [
             'alias.required' => 'Escribe tu nombre o alias para continuar.',
             'alias.min' => 'El alias debe tener al menos 2 caracteres.',
+            'alias.regex' => 'Usa solo letras, numeros, espacios, puntos, guiones o guiones bajos.',
         ];
     }
 }

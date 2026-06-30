@@ -6,6 +6,7 @@ use App\Enums\TableStatus;
 use App\Models\DiningTable;
 use App\Models\Product;
 use App\Models\RestaurantSetting;
+use App\Models\TableGuest;
 use App\Models\TableSession;
 use App\Models\User;
 use Illuminate\Database\QueryException;
@@ -79,6 +80,92 @@ class TableQrTest extends TestCase
             ->assertSee('Ver menu');
     }
 
+    public function test_guest_identity_uses_token_and_joined_at(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $this->chooseSeparateAccountMode($table);
+
+        $response = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk()
+            ->assertJsonPath('guests.0.alias', 'Laura');
+
+        $guest = TableGuest::firstOrFail();
+
+        $this->assertSame($guest->guest_token, $response->json('guests.0.guest_token'));
+        $this->assertNotEmpty($guest->guest_token);
+        $this->assertSame(48, strlen($guest->guest_token));
+        $this->assertNotNull($guest->joined_at);
+    }
+
+    public function test_table_session_is_reused_and_table_becomes_occupied(): void
+    {
+        $table = DiningTable::factory()->create([
+            'is_active' => true,
+            'current_status' => TableStatus::Available,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $session = TableSession::where('dining_table_id', $table->id)->where('status', 'open')->firstOrFail();
+
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+        $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Ana',
+        ])->assertOk()
+            ->assertJsonCount(2, 'guests');
+
+        $this->assertSame(1, TableSession::where('dining_table_id', $table->id)->where('status', 'open')->count());
+        $this->assertTrue($session->is(TableSession::where('dining_table_id', $table->id)->where('status', 'open')->first()));
+        $this->assertSame(TableStatus::Occupied, $table->refresh()->current_status);
+    }
+
+    public function test_same_browser_reuses_guest_token_without_creating_duplicate_guest(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $this->chooseSeparateAccountMode($table);
+
+        $firstJoin = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laurita',
+        ])->assertOk()
+            ->assertJsonPath('current_guest_id', $firstJoin->json('current_guest_id'))
+            ->assertJsonPath('guests.0.guest_token', $firstJoin->json('guests.0.guest_token'))
+            ->assertJsonPath('guests.0.alias', 'Laurita')
+            ->assertJsonCount(1, 'guests');
+
+        $this->assertSame(1, TableGuest::count());
+    }
+
+    public function test_duplicate_aliases_are_visually_distinguished(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Daniel',
+        ])->assertOk();
+
+        $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Daniel',
+        ])->assertOk()
+            ->assertJsonPath('guests.0.display_alias', 'Daniel #1')
+            ->assertJsonPath('guests.0.is_alias_duplicate', true)
+            ->assertJsonPath('guests.1.display_alias', 'Daniel #2')
+            ->assertJsonPath('guests.1.is_alias_duplicate', true);
+    }
+
     public function test_alias_is_required_to_continue(): void
     {
         $table = DiningTable::factory()->create(['is_active' => true]);
@@ -100,9 +187,11 @@ class TableQrTest extends TestCase
         ]);
         $this->chooseSeparateAccountMode($table);
 
-        $this->postJson(route('tables.join.store', $table->qr_token), [
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
         ])->assertOk();
+        $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
@@ -204,6 +293,7 @@ class TableQrTest extends TestCase
             'alias' => 'Laura',
         ])->assertOk();
         $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $croquetas->id,
@@ -226,7 +316,7 @@ class TableQrTest extends TestCase
             ->assertJsonPath('guests.1.alias', 'Ana')
             ->assertJsonPath('guests.1.subtotal', 9000);
 
-        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraId]))
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
             ->assertOk()
             ->assertJsonPath('current_guest_id', $lauraId)
             ->assertJsonPath('guests.0.alias', 'Laura');
@@ -402,6 +492,7 @@ class TableQrTest extends TestCase
             'alias' => 'Laura',
         ])->assertOk();
         $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
@@ -434,7 +525,7 @@ class TableQrTest extends TestCase
             ->assertJsonPath('device_can_confirm_order', true)
             ->assertJsonPath('can_confirm_order', true);
 
-        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraId]))
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
             ->assertOk();
 
         $this->postJson(route('tables.guest.release', $table->qr_token))->assertOk();
@@ -448,7 +539,7 @@ class TableQrTest extends TestCase
             'is_ready' => true,
         ])->assertOk()
             ->assertJsonPath('all_guests_ready', true)
-            ->assertJsonPath('current_guest_id', $anaId)
+            ->assertJsonPath('current_guest_id', null)
             ->assertJsonPath('device_can_confirm_order', true)
             ->assertJsonPath('can_confirm_order', true);
 
@@ -489,6 +580,7 @@ class TableQrTest extends TestCase
             'alias' => 'Laura',
         ])->assertOk();
         $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
@@ -513,7 +605,7 @@ class TableQrTest extends TestCase
             ->assertJsonPath('device_can_confirm_order', false)
             ->assertJsonPath('can_confirm_order', false);
 
-        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraId]))
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
             ->assertOk()
             ->assertJsonPath('current_guest_id', $lauraId)
             ->assertJsonPath('device_can_confirm_order', false)
@@ -562,7 +654,7 @@ class TableQrTest extends TestCase
 
         $this->getJson(route('tables.state', $table->qr_token))
             ->assertOk()
-            ->assertJsonPath('current_guest_id', $anaId)
+            ->assertJsonPath('current_guest_id', null)
             ->assertJsonPath('device_can_confirm_order', false)
             ->assertJsonPath('can_confirm_order', false);
 
@@ -619,9 +711,11 @@ class TableQrTest extends TestCase
         ]);
         $this->chooseSeparateAccountMode($table);
 
-        $this->postJson(route('tables.join.store', $table->qr_token), [
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
             'alias' => 'Laura',
         ])->assertOk();
+        $lauraId = $joinLaura->json('current_guest_id');
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
@@ -630,12 +724,17 @@ class TableQrTest extends TestCase
 
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => true,
-        ])->assertOk();
+        ])->assertOk()
+            ->assertJsonPath('current_guest_id', null);
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
             'delta' => 1,
-        ])->assertUnprocessable();
+        ])->assertForbidden();
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
+            ->assertOk()
+            ->assertJsonPath('current_guest_id', $lauraId);
 
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => false,
@@ -664,6 +763,27 @@ class TableQrTest extends TestCase
         $this->get(route('tables.join', $table->qr_token))
             ->assertForbidden()
             ->assertSee('Esta mesa no esta disponible');
+    }
+
+    public function test_closed_session_guest_cannot_be_selected_again(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $guest = TableGuest::firstOrFail();
+        $guestToken = $guest->guest_token;
+
+        $guest->tableSession->update([
+            'status' => 'closed',
+            'closed_at' => now(),
+        ]);
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $guestToken]))
+            ->assertNotFound();
     }
 
     public function test_admin_can_regenerate_qr_token(): void

@@ -43,9 +43,9 @@ class TableSessionService
         });
     }
 
-    public function join(DiningTable $table, string $alias, ?int $guestId = null): TableGuest
+    public function join(DiningTable $table, string $alias, ?string $guestToken = null): TableGuest
     {
-        return DB::transaction(function () use ($table, $alias, $guestId): TableGuest {
+        return DB::transaction(function () use ($table, $alias, $guestToken): TableGuest {
             $session = $this->openSessionFor($table);
 
             $this->defaultExistingSessionToSeparateMode($session);
@@ -53,8 +53,8 @@ class TableSessionService
             abort_unless($session->account_mode, 422, 'Primero elige como se pagara esta mesa.');
             abort_if($session->confirmed_at, 422, 'Este pedido ya fue confirmado.');
 
-            $guest = $guestId
-                ? TableGuest::whereKey($guestId)->where('table_session_id', $session->id)->first()
+            $guest = $guestToken
+                ? TableGuest::where('guest_token', $guestToken)->where('table_session_id', $session->id)->first()
                 : null;
 
             if ($guest) {
@@ -188,8 +188,15 @@ class TableSessionService
             $this->defaultExistingSessionToSeparateMode($session);
         }
 
+        $orderedGuests = $session ? $session->guests->sortBy('id')->values() : collect();
+        $aliasTotals = $orderedGuests->countBy(fn (TableGuest $guest): string => mb_strtolower(trim($guest->alias)));
+        $aliasOccurrences = [];
+
         $guests = $session
-            ? $session->guests->map(function (TableGuest $guest): array {
+            ? $orderedGuests->map(function (TableGuest $guest) use ($aliasTotals, &$aliasOccurrences): array {
+                $aliasKey = mb_strtolower(trim($guest->alias));
+                $aliasOccurrences[$aliasKey] = ($aliasOccurrences[$aliasKey] ?? 0) + 1;
+                $isAliasDuplicate = $aliasTotals->get($aliasKey, 0) > 1;
                 $items = $guest->orders
                     ->flatMap->items
                     ->map(fn ($item): array => [
@@ -208,7 +215,13 @@ class TableSessionService
 
                 return [
                     'id' => $guest->id,
+                    'guest_token' => $guest->guest_token,
                     'alias' => $guest->alias,
+                    'display_alias' => $isAliasDuplicate
+                        ? $guest->alias.' #'.$aliasOccurrences[$aliasKey]
+                        : $guest->alias,
+                    'is_alias_duplicate' => $isAliasDuplicate,
+                    'joined_at' => $guest->joined_at?->toIso8601String(),
                     'is_ready' => (bool) $guest->is_ready,
                     'items' => $items,
                     'subtotal' => $subtotal,
