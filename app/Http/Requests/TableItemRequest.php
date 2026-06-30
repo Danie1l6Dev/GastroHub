@@ -15,7 +15,8 @@ class TableItemRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'exists:products,id'],
-            'delta' => ['required', 'integer', 'in:-1,1'],
+            'delta' => ['required', 'integer', 'in:-1,0,1'],
+            'notes' => ['nullable', 'string', 'max:160'],
         ];
     }
 }

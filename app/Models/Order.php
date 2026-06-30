@@ -12,9 +12,18 @@ class Order extends Model
         'table_session_id',
         'table_guest_id',
         'status',
+        'subtotal',
         'total',
         'notes',
+        'placed_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'placed_at' => 'datetime',
+        ];
+    }
 
     public function tableSession(): BelongsTo
     {

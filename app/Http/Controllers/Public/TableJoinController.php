@@ -209,8 +209,30 @@ class TableJoinController extends Controller
             table: $table,
             guest: $guest,
             product: Product::findOrFail($request->integer('product_id')),
-            delta: $request->integer('delta')
+            delta: $request->integer('delta'),
+            notes: $request->validated('notes')
         );
+
+        return response()->json($this->tableSessionService->state(
+            table: $table,
+            guestId: $guest->id,
+            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
+        ));
+    }
+
+    public function clearCart(string $qrToken, Request $request): JsonResponse|Response
+    {
+        $table = $this->activeTableResponse($qrToken);
+
+        if (! $table instanceof DiningTable) {
+            return $table;
+        }
+
+        $guest = $this->currentGuestForRequest($request, $table);
+
+        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
+
+        $this->tableSessionService->clearCart($table, $guest);
 
         return response()->json($this->tableSessionService->state(
             table: $table,

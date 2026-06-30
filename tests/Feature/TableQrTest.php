@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\TableStatus;
+use App\Models\CartItem;
 use App\Models\DiningTable;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\RestaurantSetting;
 use App\Models\TableGuest;
@@ -203,6 +205,220 @@ class TableQrTest extends TestCase
             ->assertJsonPath('categories.0.products.0.image_url', $product->imageUrl())
             ->assertJsonPath('guests.0.subtotal', 18000)
             ->assertJsonPath('total', 18000);
+    }
+
+    public function test_guest_can_add_notes_and_clear_cart(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'name' => 'Taco',
+            'price' => 12000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.items.0.quantity', 1)
+            ->assertJsonPath('guests.0.cart_subtotal', 12000);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 0,
+            'notes' => 'Sin picante',
+        ])->assertOk()
+            ->assertJsonPath('guests.0.items.0.notes', 'Sin picante');
+
+        $this->assertDatabaseHas('cart_items', [
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'line_total' => 12000,
+            'notes' => 'Sin picante',
+        ]);
+
+        $this->postJson(route('tables.cart.clear', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('guests.0.items', [])
+            ->assertJsonPath('guests.0.cart_subtotal', 0);
+
+        $this->assertSame(0, CartItem::count());
+    }
+
+    public function test_ready_creates_order_keeps_historical_price_and_clears_cart(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'name' => 'Ramen',
+            'price' => 25000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 0,
+            'notes' => 'Caldo aparte',
+        ])->assertOk();
+
+        $product->update(['name' => 'Ramen especial', 'price' => 32000]);
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.items', [])
+            ->assertJsonPath('guests.0.orders.0.status', 'new')
+            ->assertJsonPath('guests.0.orders.0.subtotal', 25000)
+            ->assertJsonPath('guests.0.orders.0.items.0.name', 'Ramen')
+            ->assertJsonPath('guests.0.orders.0.items.0.unit_price', 25000)
+            ->assertJsonPath('guests.0.orders.0.items.0.notes', 'Caldo aparte');
+
+        $order = Order::firstOrFail();
+
+        $this->assertSame('new', $order->status);
+        $this->assertSame(25000, $order->subtotal);
+        $this->assertNotNull($order->placed_at);
+        $this->assertSame(0, CartItem::count());
+        $this->assertDatabaseHas('order_items', [
+            'product_name' => 'Ramen',
+            'unit_price' => 25000,
+            'line_total' => 25000,
+            'subtotal' => 25000,
+            'notes' => 'Caldo aparte',
+        ]);
+    }
+
+    public function test_editing_selection_before_table_confirmation_replaces_previous_order(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $firstProduct = Product::factory()->create([
+            'name' => 'Ramen',
+            'price' => 25000,
+            'is_available' => true,
+        ]);
+        $secondProduct = Product::factory()->create([
+            'name' => 'Gyozas',
+            'price' => 14000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $firstProduct->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonCount(1, 'guests.0.orders')
+            ->assertJsonPath('guests.0.orders.0.subtotal', 25000);
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, TableGuest::firstOrFail()->guest_token]))
+            ->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => false,
+        ])->assertOk()
+            ->assertJsonCount(0, 'guests.0.orders')
+            ->assertJsonPath('guests.0.items.0.name', 'Ramen')
+            ->assertJsonPath('guests.0.cart_subtotal', 25000);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $firstProduct->id,
+            'delta' => -1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $secondProduct->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonCount(1, 'guests.0.orders')
+            ->assertJsonPath('guests.0.orders.0.subtotal', 14000)
+            ->assertJsonPath('guests.0.orders.0.items.0.name', 'Gyozas');
+
+        $this->assertSame(1, Order::count());
+        $this->assertDatabaseMissing('order_items', ['product_name' => 'Ramen']);
+    }
+
+    public function test_after_table_confirmation_extra_selection_creates_additional_order(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $firstProduct = Product::factory()->create([
+            'name' => 'Ramen',
+            'price' => 25000,
+            'is_available' => true,
+        ]);
+        $secondProduct = Product::factory()->create([
+            'name' => 'Postre',
+            'price' => 11000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $joinLaura = $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+        $lauraToken = $joinLaura->json('guests.0.guest_token');
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $firstProduct->id,
+            'delta' => 1,
+        ])->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk();
+
+        $this->postJson(route('tables.confirm', $table->qr_token))
+            ->assertOk()
+            ->assertJsonPath('order_confirmed', true);
+
+        $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
+            ->assertOk();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => false,
+        ])->assertOk()
+            ->assertJsonCount(1, 'guests.0.orders')
+            ->assertJsonPath('guests.0.items', []);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $secondProduct->id,
+            'delta' => 1,
+        ])->assertOk()
+            ->assertJsonPath('guests.0.items.0.name', 'Postre');
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertOk()
+            ->assertJsonCount(2, 'guests.0.orders')
+            ->assertJsonPath('guests.0.orders.1.items.0.name', 'Postre')
+            ->assertJsonPath('guests.0.subtotal', 36000);
+
+        $this->assertSame(2, Order::count());
     }
 
     public function test_sold_out_product_cannot_be_added_to_table(): void
@@ -535,6 +751,11 @@ class TableQrTest extends TestCase
         ])->assertOk();
         $anaId = $joinAna->json('current_guest_id');
 
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
+
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => true,
         ])->assertOk()
@@ -562,7 +783,7 @@ class TableQrTest extends TestCase
         ])->assertUnprocessable();
 
         $this->assertDatabaseHas('orders', [
-            'status' => 'confirmed',
+            'status' => 'new',
             'total' => 28000,
         ]);
     }
@@ -597,6 +818,11 @@ class TableQrTest extends TestCase
             'alias' => 'Ana',
         ])->assertOk();
         $anaId = $joinAna->json('current_guest_id');
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
 
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => true,
@@ -642,6 +868,11 @@ class TableQrTest extends TestCase
             'alias' => 'Ana',
         ])->assertOk();
         $anaId = $joinAna->json('current_guest_id');
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertOk();
 
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => true,
@@ -745,7 +976,8 @@ class TableQrTest extends TestCase
             'product_id' => $product->id,
             'delta' => 1,
         ])->assertOk()
-            ->assertJsonPath('guests.0.items.0.quantity', 2);
+            ->assertJsonPath('guests.0.items.0.quantity', 2)
+            ->assertJsonCount(0, 'guests.0.orders');
     }
 
     public function test_invalid_token_is_rejected_with_clear_error(): void
@@ -784,6 +1016,34 @@ class TableQrTest extends TestCase
 
         $this->postJson(route('tables.guests.select', [$table->qr_token, $guestToken]))
             ->assertNotFound();
+    }
+
+    public function test_guest_cannot_create_order_in_closed_session(): void
+    {
+        $table = DiningTable::factory()->create(['is_active' => true]);
+        $product = Product::factory()->create([
+            'price' => 18000,
+            'is_available' => true,
+        ]);
+        $this->chooseSeparateAccountMode($table);
+
+        $this->postJson(route('tables.join.store', $table->qr_token), [
+            'alias' => 'Laura',
+        ])->assertOk();
+
+        TableSession::where('dining_table_id', $table->id)->where('status', 'open')->update([
+            'status' => 'closed',
+            'closed_at' => now(),
+        ]);
+
+        $this->postJson(route('tables.items', $table->qr_token), [
+            'product_id' => $product->id,
+            'delta' => 1,
+        ])->assertForbidden();
+
+        $this->postJson(route('tables.ready', $table->qr_token), [
+            'is_ready' => true,
+        ])->assertForbidden();
     }
 
     public function test_admin_can_regenerate_qr_token(): void

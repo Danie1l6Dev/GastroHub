@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\TableAccountMode;
 use App\Enums\TableStatus;
+use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\DiningTable;
 use App\Models\Order;
@@ -76,72 +77,84 @@ class TableSessionService
         });
     }
 
-    public function changeItem(DiningTable $table, TableGuest $guest, Product $product, int $delta): void
+    public function changeItem(DiningTable $table, TableGuest $guest, Product $product, int $delta, ?string $notes = null): void
     {
-        if (! $product->is_available) {
+        if ($delta > 0 && ! $product->is_available) {
             abort(422, 'Este producto esta agotado.');
         }
 
-        DB::transaction(function () use ($table, $guest, $product, $delta): void {
-            $session = $this->openSessionFor($table);
+        DB::transaction(function () use ($table, $guest, $product, $delta, $notes): void {
+            $session = $this->currentOpenSessionFor($table);
 
             $this->defaultExistingSessionToSeparateMode($session);
 
             abort_unless($guest->table_session_id === $session->id, 403);
             abort_unless($session->account_mode, 422, 'Primero elige como se pagara esta mesa.');
-            abort_if($session->confirmed_at, 422, 'Este pedido ya fue confirmado.');
             abort_if($guest->is_ready, 422, 'Esta persona ya marco su seleccion como lista.');
 
-            $order = Order::firstOrCreate(
-                [
-                    'table_session_id' => $session->id,
-                    'table_guest_id' => $guest->id,
-                    'status' => 'pending',
-                ],
-                ['total' => 0]
-            );
-
-            $item = $order->items()->where('product_id', $product->id)->first();
+            $item = $guest->cartItems()->where('product_id', $product->id)->first();
 
             if ($delta > 0) {
                 if ($item) {
                     $item->quantity++;
-                    $item->subtotal = $item->quantity * $item->unit_price;
+                    $item->line_total = $item->quantity * $item->unit_price;
+                    $item->notes = $notes ?? $item->notes;
                     $item->save();
                 } else {
-                    $order->items()->create([
+                    $guest->cartItems()->create([
                         'product_id' => $product->id,
                         'product_name' => $product->name,
                         'unit_price' => $product->price,
                         'quantity' => 1,
-                        'subtotal' => $product->price,
+                        'line_total' => $product->price,
+                        'notes' => $notes,
                     ]);
                 }
             } elseif ($item) {
-                $item->quantity--;
+                if ($delta === 0) {
+                    $item->update(['notes' => $notes]);
 
+                    return;
+                }
+
+                $item->quantity--;
                 if ($item->quantity <= 0) {
                     $item->delete();
                 } else {
-                    $item->subtotal = $item->quantity * $item->unit_price;
+                    $item->line_total = $item->quantity * $item->unit_price;
                     $item->save();
                 }
             }
+        });
+    }
 
-            $order->update(['total' => $order->items()->sum('subtotal')]);
+    public function clearCart(DiningTable $table, TableGuest $guest): void
+    {
+        DB::transaction(function () use ($table, $guest): void {
+            $session = $this->currentOpenSessionFor($table);
+
+            abort_unless($guest->table_session_id === $session->id, 403);
+            abort_if($guest->is_ready, 422, 'Esta persona ya marco su seleccion como lista.');
+
+            $guest->cartItems()->delete();
         });
     }
 
     public function setGuestReady(DiningTable $table, TableGuest $guest, bool $isReady): void
     {
         DB::transaction(function () use ($table, $guest, $isReady): void {
-            $session = $this->openSessionFor($table);
+            $session = $this->currentOpenSessionFor($table);
 
             $this->defaultExistingSessionToSeparateMode($session);
 
             abort_unless($guest->table_session_id === $session->id, 403);
             abort_unless($session->account_mode, 422, 'Primero elige como se pagara esta mesa.');
-            abort_if($session->confirmed_at, 422, 'Este pedido ya fue confirmado.');
+
+            if ($isReady && ! $guest->is_ready) {
+                $this->placeOrderFromCart($session, $guest);
+            } elseif (! $isReady && $guest->is_ready && ! $session->confirmed_at) {
+                $this->restoreLatestOrderToCart($guest);
+            }
 
             $guest->update([
                 'is_ready' => $isReady,
@@ -153,11 +166,11 @@ class TableSessionService
     public function confirmOrder(DiningTable $table, TableGuest $guest): void
     {
         DB::transaction(function () use ($table, $guest): void {
-            $session = $this->openSessionFor($table);
+            $session = $this->currentOpenSessionFor($table);
 
             $this->defaultExistingSessionToSeparateMode($session);
 
-            $session->load(['guests.orders.items']);
+            $session->load(['guests.orders.items', 'guests.cartItems']);
 
             abort_unless($guest->table_session_id === $session->id, 403);
             abort_unless($session->account_mode, 422, 'Primero elige como se pagara esta mesa.');
@@ -169,7 +182,6 @@ class TableSessionService
             abort_unless($this->sessionHasItems($session), 422, 'Agrega al menos un producto antes de confirmar.');
             abort_unless($this->allGuestsReady($session), 422, 'Todas las personas deben marcar su seleccion como lista.');
 
-            $session->orders()->where('status', 'pending')->update(['status' => 'confirmed']);
             $session->update([
                 'confirmed_at' => now(),
                 'confirmed_by_guest_id' => $guest->id,
@@ -179,7 +191,7 @@ class TableSessionService
 
     public function state(DiningTable $table, ?int $guestId = null, ?int $coordinatorGuestId = null): array
     {
-        $session = TableSession::with(['confirmedByGuest', 'guests.orders.items'])
+        $session = TableSession::with(['confirmedByGuest', 'guests.cartItems', 'guests.orders.items'])
             ->where('dining_table_id', $table->id)
             ->where('status', 'open')
             ->first();
@@ -197,21 +209,45 @@ class TableSessionService
                 $aliasKey = mb_strtolower(trim($guest->alias));
                 $aliasOccurrences[$aliasKey] = ($aliasOccurrences[$aliasKey] ?? 0) + 1;
                 $isAliasDuplicate = $aliasTotals->get($aliasKey, 0) > 1;
-                $items = $guest->orders
-                    ->flatMap->items
-                    ->map(fn ($item): array => [
+                $items = $guest->cartItems
+                    ->map(fn (CartItem $item): array => [
                         'id' => $item->id,
                         'product_id' => $item->product_id,
                         'name' => $item->product_name,
                         'unit_price' => $item->unit_price,
                         'unit_price_formatted' => $this->money($item->unit_price),
                         'quantity' => $item->quantity,
-                        'subtotal' => $item->subtotal,
-                        'subtotal_formatted' => $this->money($item->subtotal),
+                        'subtotal' => $item->line_total,
+                        'subtotal_formatted' => $this->money($item->line_total),
+                        'notes' => $item->notes,
                     ])
                     ->values();
 
                 $subtotal = $items->sum('subtotal');
+                $orders = $guest->orders
+                    ->sortBy('id')
+                    ->map(fn (Order $order): array => [
+                        'id' => $order->id,
+                        'status' => $order->status,
+                        'status_label' => $this->orderStatusLabel($order->status),
+                        'subtotal' => $order->subtotal,
+                        'subtotal_formatted' => $this->money($order->subtotal),
+                        'placed_at' => $order->placed_at?->toIso8601String(),
+                        'items' => $order->items->map(fn ($item): array => [
+                            'id' => $item->id,
+                            'product_id' => $item->product_id,
+                            'name' => $item->product_name,
+                            'unit_price' => $item->unit_price,
+                            'unit_price_formatted' => $this->money($item->unit_price),
+                            'quantity' => $item->quantity,
+                            'subtotal' => $item->line_total,
+                            'subtotal_formatted' => $this->money($item->line_total),
+                            'notes' => $item->notes,
+                        ])->values(),
+                    ])
+                    ->values();
+                $ordersTotal = $orders->sum('subtotal');
+                $personalTotal = $subtotal + $ordersTotal;
 
                 return [
                     'id' => $guest->id,
@@ -224,8 +260,13 @@ class TableSessionService
                     'joined_at' => $guest->joined_at?->toIso8601String(),
                     'is_ready' => (bool) $guest->is_ready,
                     'items' => $items,
-                    'subtotal' => $subtotal,
-                    'subtotal_formatted' => $this->money($subtotal),
+                    'cart_subtotal' => $subtotal,
+                    'cart_subtotal_formatted' => $this->money($subtotal),
+                    'orders' => $orders,
+                    'orders_total' => $ordersTotal,
+                    'orders_total_formatted' => $this->money($ordersTotal),
+                    'subtotal' => $personalTotal,
+                    'subtotal_formatted' => $this->money($personalTotal),
                 ];
             })->values()
             : collect();
@@ -252,7 +293,7 @@ class TableSessionService
 
         $total = $guests->sum('subtotal');
         $jointOrderOwner = $session?->account_mode === TableAccountMode::Joint
-            ? $guests->first(fn (array $guest): bool => $guest['items']->isNotEmpty())
+            ? $guests->first(fn (array $guest): bool => $guest['items']->isNotEmpty() || $guest['orders']->isNotEmpty())
             : null;
         $jointOrderLocked = (bool) $jointOrderOwner && $jointOrderOwner['id'] !== $guestId;
         $coordinator = $session ? $this->coordinatorGuest($session) : null;
@@ -297,6 +338,93 @@ class TableSessionService
         return '$'.number_format($value, 0, ',', '.');
     }
 
+    private function currentOpenSessionFor(DiningTable $table): TableSession
+    {
+        $session = TableSession::where('dining_table_id', $table->id)
+            ->where('status', 'open')
+            ->first();
+
+        abort_unless($session, 403, 'Esta sesion de mesa ya no esta abierta.');
+
+        return $session;
+    }
+
+    private function placeOrderFromCart(TableSession $session, TableGuest $guest): Order
+    {
+        $cartItems = $guest->cartItems()->get();
+
+        abort_unless($cartItems->isNotEmpty(), 422, 'Agrega al menos un producto antes de confirmar tu pedido.');
+
+        $subtotal = $cartItems->sum('line_total');
+
+        $order = $session->orders()->create([
+            'table_guest_id' => $guest->id,
+            'status' => 'new',
+            'subtotal' => $subtotal,
+            'total' => $subtotal,
+            'placed_at' => now(),
+        ]);
+
+        $cartItems->each(function (CartItem $cartItem) use ($order): void {
+            $order->items()->create([
+                'product_id' => $cartItem->product_id,
+                'product_name' => $cartItem->product_name,
+                'unit_price' => $cartItem->unit_price,
+                'quantity' => $cartItem->quantity,
+                'line_total' => $cartItem->line_total,
+                'subtotal' => $cartItem->line_total,
+                'notes' => $cartItem->notes,
+            ]);
+        });
+
+        $guest->cartItems()->delete();
+
+        return $order;
+    }
+
+    private function restoreLatestOrderToCart(TableGuest $guest): void
+    {
+        if ($guest->cartItems()->exists()) {
+            return;
+        }
+
+        $order = $guest->orders()
+            ->with('items')
+            ->where('status', 'new')
+            ->latest('id')
+            ->first();
+
+        if (! $order) {
+            return;
+        }
+
+        $order->items->each(function ($item) use ($guest): void {
+            $guest->cartItems()->updateOrCreate(
+                ['product_id' => $item->product_id],
+                [
+                    'product_name' => $item->product_name,
+                    'unit_price' => $item->unit_price,
+                    'quantity' => $item->quantity,
+                    'line_total' => $item->line_total,
+                    'notes' => $item->notes,
+                ]
+            );
+        });
+
+        $order->delete();
+    }
+
+    private function orderStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'new' => 'Nuevo',
+            'preparing' => 'Preparando',
+            'delivered' => 'Entregado',
+            'cancelled' => 'Cancelado',
+            default => ucfirst($status),
+        };
+    }
+
     private function defaultExistingSessionToSeparateMode(TableSession $session): void
     {
         if ($session->account_mode || ! $session->guests()->exists()) {
@@ -321,7 +449,7 @@ class TableSessionService
     private function sessionHasItems(TableSession $session): bool
     {
         return $session->guests->some(
-            fn (TableGuest $guest): bool => $guest->orders->flatMap->items->isNotEmpty()
+            fn (TableGuest $guest): bool => $guest->orders->isNotEmpty() || $guest->cartItems->isNotEmpty()
         );
     }
 }

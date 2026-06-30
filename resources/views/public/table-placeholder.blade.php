@@ -10,6 +10,7 @@
         data-release-url="{{ route('tables.guest.release', $table->qr_token) }}"
         data-select-guest-url="{{ route('tables.guests.select', [$table->qr_token, '__guest__']) }}"
         data-items-url="{{ route('tables.items', $table->qr_token) }}"
+        data-clear-cart-url="{{ route('tables.cart.clear', $table->qr_token) }}"
         data-ready-url="{{ route('tables.ready', $table->qr_token) }}"
         data-confirm-url="{{ route('tables.confirm', $table->qr_token) }}"
         data-initial-alias="{{ $alias }}"
@@ -145,6 +146,7 @@
             const releaseUrl = root.dataset.releaseUrl;
             const selectGuestUrl = root.dataset.selectGuestUrl;
             const itemsUrl = root.dataset.itemsUrl;
+            const clearCartUrl = root.dataset.clearCartUrl;
             const readyUrl = root.dataset.readyUrl;
             const confirmUrl = root.dataset.confirmUrl;
             let currentGuestId = root.dataset.initialGuestId ? Number(root.dataset.initialGuestId) : null;
@@ -220,12 +222,14 @@
                 root.querySelector('[data-current-guest]').classList.toggle('hidden', !currentGuest);
                 root.querySelector('[data-current-alias]').textContent = currentGuest?.alias || '';
                 root.querySelector('[data-release-guest]').hidden = isJointMode || state.order_confirmed || !currentGuest || currentGuest.is_ready;
-                root.querySelector('[data-ready-toggle]').hidden = !currentGuest || state.order_confirmed;
+                root.querySelector('[data-ready-toggle]').hidden = !currentGuest;
                 root.querySelector('[data-ready-toggle]').textContent = currentGuest?.is_ready
-                    ? 'Editar mi seleccion'
+                    ? state.order_confirmed
+                        ? 'Pedir algo extra'
+                        : 'Editar mi seleccion'
                     : isJointMode
-                        ? 'Mi seleccion esta lista'
-                        : 'Mi seleccion esta lista y agregar otra';
+                        ? 'Enviar mi pedido'
+                        : 'Enviar mi pedido y agregar otra persona';
                 root.querySelector('[data-people-panel]').classList.toggle('hidden', isJointMode);
                 root.querySelector('[data-account-mode-badge]').textContent = state.account_mode_label || '';
                 root.querySelector('[data-guest-count]').textContent = state.guests.length;
@@ -255,7 +259,7 @@
                                 </div>
                             </div>
                             <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-xs text-zinc-500">${guest.items.length} productos seleccionados${guest.id === state.coordinator_guest_id ? ' · Encargado' : ''}</p>
+                                <p class="text-xs text-zinc-500">${guest.items.length} en carrito · ${guest.orders.length} pedidos${guest.id === state.coordinator_guest_id ? ' · Encargado' : ''}</p>
                                 <button
                                     type="button"
                                     data-select-guest="${guest.guest_token}"
@@ -274,9 +278,11 @@
                 const activeGuest = currentGuest();
                 const selectionLock = root.querySelector('[data-selection-lock]');
                 const lockedMessage = state.order_confirmed
-                    ? `Pedido confirmado por ${escapeHtml(state.confirmed_by_alias || 'la mesa')}.`
+                    ? activeGuest?.is_ready
+                        ? `Pedido confirmado por ${escapeHtml(state.confirmed_by_alias || 'la mesa')}. Toca "Pedir algo extra" para abrir otro carrito.`
+                        : ''
                     : activeGuest?.is_ready
-                        ? 'Tu seleccion esta marcada como lista. Toca "Editar mi seleccion" si necesitas cambiar algo.'
+                        ? 'Tu pedido fue enviado. Toca "Editar mi seleccion" si quieres abrir otro carrito.'
                         : '';
                 selectionLock.innerHTML = lockedMessage;
                 selectionLock.classList.toggle('hidden', !lockedMessage);
@@ -369,13 +375,40 @@
                                 <h3 class="min-w-0 truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</h3>
                                 <p class="font-semibold tabular-nums">${guest.subtotal_formatted}</p>
                             </div>
-                            <div class="mt-3 divide-y divide-zinc-100">
+                            <div class="mt-3 flex items-center justify-between gap-3">
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Carrito</p>
+                            ${guest.id === currentGuestId && guest.items.length && !guest.is_ready ? '<button type="button" data-clear-cart class="rounded-md border border-zinc-200 px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-zinc-50">Vaciar</button>' : ''}
+                            </div>
+                            <div class="mt-2 divide-y divide-zinc-100">
                                 ${guest.items.length ? guest.items.map((item) => `
-                                    <div class="flex items-center justify-between gap-3 py-2 text-sm">
-                                        <p class="min-w-0">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
-                                        <p class="font-medium tabular-nums">${item.subtotal_formatted}</p>
+                                    <div class="py-2 text-sm">
+                                        <div class="flex items-center justify-between gap-3">
+                                            <p class="min-w-0">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
+                                            <p class="font-medium tabular-nums">${item.subtotal_formatted}</p>
+                                        </div>
+                                        ${guest.id === currentGuestId && !guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" class="mt-2 min-h-9 w-full rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100">` : (item.notes ? `<p class="mt-1 text-xs text-zinc-500">Nota: ${escapeHtml(item.notes)}</p>` : '')}
                                     </div>
                                 `).join('') : '<p class="py-2 text-sm text-zinc-500">Sin platos seleccionados.</p>'}
+                            </div>
+                            <div class="mt-4 border-t border-zinc-100 pt-3">
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Pedidos enviados</p>
+                                <div class="mt-2 space-y-3">
+                                    ${guest.orders.length ? guest.orders.map((order) => `
+                                        <div class="rounded-md bg-zinc-50 p-3">
+                                            <div class="flex items-center justify-between gap-3">
+                                                <p class="text-xs font-semibold text-zinc-600">Pedido #${order.id} · ${escapeHtml(order.status_label)}</p>
+                                                <p class="text-sm font-semibold tabular-nums">${order.subtotal_formatted}</p>
+                                            </div>
+                                            <div class="mt-2 space-y-1">
+                                                ${order.items.map((item) => `
+                                                    <div class="text-xs text-zinc-600">
+                                                        ${escapeHtml(item.name)} x${item.quantity}${item.notes ? ` · ${escapeHtml(item.notes)}` : ''}
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `).join('') : '<p class="text-sm text-zinc-500">Aun no ha enviado pedidos.</p>'}
+                                </div>
                             </div>
                             <p class="mt-3 text-xs font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Seleccion lista' : 'Esperando confirmacion de seleccion'}</p>
                         </section>
@@ -416,7 +449,7 @@
             const canEditCurrentSelection = () => {
                 const guest = currentGuest();
 
-                return Boolean(guest && !guest.is_ready && !state.order_confirmed);
+                return Boolean(guest && !guest.is_ready);
             };
 
             const currentGuestProductQuantity = (productId) => {
@@ -542,6 +575,23 @@
                     return;
                 }
 
+                const clearCartButton = event.target.closest('[data-clear-cart]');
+                if (clearCartButton) {
+                    try {
+                        clearCartButton.disabled = true;
+                        state = await request(clearCartUrl, { method: 'POST' });
+                        currentGuestId = state.current_guest_id;
+                        render();
+                        setError('');
+                    } catch (error) {
+                        setError('No se pudo vaciar el carrito.');
+                    } finally {
+                        clearCartButton.disabled = false;
+                    }
+
+                    return;
+                }
+
                 const categoryButton = event.target.closest('[data-category]');
                 if (categoryButton) {
                     selectedCategoryId = Number(categoryButton.dataset.category);
@@ -566,6 +616,30 @@
                     setError('');
                 } catch (error) {
                     setError('Primero ingresa tu alias o revisa si el producto esta disponible.');
+                }
+            });
+
+            root.addEventListener('change', async (event) => {
+                const noteInput = event.target.closest('[data-cart-note]');
+                if (!noteInput) return;
+
+                try {
+                    noteInput.disabled = true;
+                    state = await request(itemsUrl, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            product_id: Number(noteInput.dataset.cartNote),
+                            delta: 0,
+                            notes: noteInput.value,
+                        }),
+                    });
+                    currentGuestId = state.current_guest_id;
+                    render();
+                    setError('');
+                } catch (error) {
+                    setError('No se pudo guardar la nota del producto.');
+                } finally {
+                    noteInput.disabled = false;
                 }
             });
 

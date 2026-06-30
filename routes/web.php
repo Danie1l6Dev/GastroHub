@@ -19,6 +19,7 @@ Route::post('/table/{qrToken}/release', [TableJoinController::class, 'release'])
 Route::post('/table/{qrToken}/guests/{guest:guest_token}/select', [TableJoinController::class, 'selectGuest'])->name('tables.guests.select');
 Route::get('/table/{qrToken}/state', [TableJoinController::class, 'state'])->name('tables.state');
 Route::post('/table/{qrToken}/items', [TableJoinController::class, 'item'])->name('tables.items');
+Route::post('/table/{qrToken}/cart/clear', [TableJoinController::class, 'clearCart'])->name('tables.cart.clear');
 Route::post('/table/{qrToken}/ready', [TableJoinController::class, 'ready'])->name('tables.ready');
 Route::post('/table/{qrToken}/confirm', [TableJoinController::class, 'confirm'])->name('tables.confirm');
 Route::get('/mesa/{qrToken}', TableJoinController::class)->name('tables.legacy-join');
