@@ -241,6 +241,7 @@ class TableSessionService
                         'subtotal' => $order->subtotal,
                         'subtotal_formatted' => $this->money($order->subtotal),
                         'placed_at' => $order->placed_at?->toIso8601String(),
+                        'is_additional' => (bool) $order->is_additional,
                         'items' => $order->items->map(fn ($item): array => [
                             'id' => $item->id,
                             'product_id' => $item->product_id,
@@ -373,6 +374,7 @@ class TableSessionService
             'subtotal' => $subtotal,
             'total' => $subtotal,
             'placed_at' => now(),
+            'is_additional' => (bool) $session->confirmed_at,
         ]);
 
         $cartItems->each(function (CartItem $cartItem) use ($order): void {

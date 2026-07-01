@@ -6,7 +6,7 @@
             <p class="gh-page-kicker">Panel interno</p>
             <h1 class="gh-page-title">Operacion del restaurante</h1>
             <span class="sr-only">Dashboard administrativo</span>
-            <p class="gh-page-copy">Resumen de pedidos, mesas y ventas simuladas con datos reales del prototipo.</p>
+            <p class="gh-page-copy">Resumen de pedidos, mesas y ventas confirmadas al cerrar mesa.</p>
         </div>
         <a href="{{ route('admin.orders.index') }}" class="gh-btn gh-btn-primary">Ver pedidos</a>
     </div>

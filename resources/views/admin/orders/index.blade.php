@@ -24,15 +24,56 @@
             ->countBy('status');
     @endphp
 
-    <div class="mt-6 flex flex-wrap gap-2">
+    <div class="-mx-4 mt-6 overflow-x-auto px-4">
+        <div class="flex w-max min-w-full gap-2">
         @foreach ($orderStatuses->labels() as $status => $label)
             <x-badge :tone="['new' => 'warning', 'preparing' => 'info', 'delivered' => 'success', 'cancelled' => 'neutral'][$status] ?? 'neutral'">
                 {{ $label }} · {{ (int) ($statusCounts[$status] ?? 0) }}
             </x-badge>
         @endforeach
+        </div>
     </div>
 
-    <form method="GET" action="{{ route('admin.orders.index') }}" class="gh-panel mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
+    <details data-order-filters-mobile class="gh-panel mt-4 lg:hidden">
+        <summary class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-zinc-900 [&::-webkit-details-marker]:hidden">
+            Filtros
+            <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs text-zinc-600">Estado, mesa y fecha</span>
+        </summary>
+        <form method="GET" action="{{ route('admin.orders.index') }}" class="mt-4 grid gap-3">
+            <label class="text-sm font-medium text-zinc-700">
+                <span class="mb-1 block">Estado</span>
+                <select name="status" class="gh-field">
+                    <option value="">Todos los estados</option>
+                    @foreach ($orderStatuses->labels() as $status => $label)
+                        <option value="{{ $status }}" @selected(($filters['status'] ?? '') === $status)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            <label class="text-sm font-medium text-zinc-700">
+                <span class="mb-1 block">Mesa</span>
+                <select name="table_id" class="gh-field">
+                    <option value="">Todas las mesas</option>
+                    @foreach ($tables as $table)
+                        <option value="{{ $table->id }}" @selected((string) ($filters['table_id'] ?? '') === (string) $table->id)>{{ $table->name }}</option>
+                    @endforeach
+                </select>
+            </label>
+
+            <label class="text-sm font-medium text-zinc-700">
+                <span class="mb-1 block">Fecha</span>
+                <select name="date" class="gh-field">
+                    <option value="today" @selected(($filters['date'] ?? 'today') === 'today')>Hoy</option>
+                    <option value="all" @selected(($filters['date'] ?? 'today') === 'all')>Todos</option>
+                </select>
+            </label>
+
+            <button class="gh-btn gh-btn-primary">Filtrar</button>
+            <a href="{{ route('admin.orders.index') }}" class="gh-btn gh-btn-secondary">Limpiar</a>
+        </form>
+    </details>
+
+    <form method="GET" action="{{ route('admin.orders.index') }}" class="gh-panel mt-4 hidden gap-3 lg:grid lg:grid-cols-[1fr_1fr_1fr_auto_auto]">
         <label class="text-sm font-medium text-zinc-700">
             <span class="mb-1 block">Estado</span>
             <select name="status" class="gh-field">
@@ -112,17 +153,19 @@
                                 : 'border-emerald-200 bg-emerald-50 text-emerald-800';
                         @endphp
 
-                        <section class="rounded-2xl border border-zinc-200">
-                            <div class="grid gap-3 border-b border-zinc-100 px-3 py-3 lg:grid-cols-[1fr_auto] lg:items-center">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 {{ $badgeClasses }}">{{ $ticket['status_label'] }}</span>
-                                    <span class="rounded-full border px-2.5 py-1 text-xs font-semibold {{ $typeClasses }}">{{ $ticket['type_label'] }}</span>
-                                    <span class="text-xs font-medium text-zinc-500">{{ $ticket['id'] }}</span>
-                                    <span class="text-xs text-zinc-500">{{ $ticket['placed_at']?->format('d/m/Y H:i') ?? 'Sin hora' }}</span>
-                                </div>
+                        <details class="rounded-2xl border border-zinc-200" @if($ticket['status'] !== 'delivered') open @endif>
+                            <summary class="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                                <div class="grid gap-3 border-b border-zinc-100 px-3 py-3 lg:grid-cols-[1fr_auto] lg:items-center">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold ring-1 {{ $badgeClasses }}">{{ $ticket['status_label'] }}</span>
+                                        <span class="rounded-full border px-2.5 py-1 text-xs font-semibold {{ $typeClasses }}">{{ $ticket['type_label'] }}</span>
+                                        <span class="text-xs font-medium text-zinc-500">{{ $ticket['id'] }}</span>
+                                        <span class="text-xs text-zinc-500">{{ $ticket['placed_at']?->format('d/m/Y H:i') ?? 'Sin hora' }}</span>
+                                    </div>
 
-                                <p class="text-lg font-semibold tabular-nums text-zinc-950 lg:text-right">${{ number_format((int) $ticket['total'], 0, ',', '.') }}</p>
-                            </div>
+                                    <p class="text-lg font-semibold tabular-nums text-zinc-950 lg:text-right">${{ number_format((int) $ticket['total'], 0, ',', '.') }}</p>
+                                </div>
+                            </summary>
 
                             <div class="grid gap-4 p-3 xl:grid-cols-[1fr_14rem] xl:items-start">
                                 <div class="grid gap-2">
@@ -147,13 +190,13 @@
                                     @endforeach
                                 </div>
 
-                                <div class="flex flex-wrap gap-2 xl:justify-end">
+                                <div class="grid gap-2 xl:flex xl:flex-wrap xl:justify-end">
                                     @forelse ($ticket['allowed_transitions'] as $nextStatus)
                                         <form method="POST" action="{{ $ticket['type'] === 'main' ? route('admin.orders.sessions.main.status', $session) : route('admin.orders.status', $ticket['source_order']) }}">
                                             @csrf
                                             @method('PATCH')
                                             <input type="hidden" name="status" value="{{ $nextStatus }}">
-                                            <button class="gh-btn min-h-10 px-3 {{ $nextStatus === 'cancelled' ? 'gh-btn-danger' : 'gh-btn-secondary' }}" @if($nextStatus === 'cancelled') data-confirm="Cancelar este pedido?" @endif>
+                                            <button class="gh-btn min-h-11 w-full px-3 xl:w-auto {{ $nextStatus === 'cancelled' ? 'gh-btn-danger' : 'gh-btn-secondary' }}" @if($nextStatus === 'cancelled') data-confirm="Cancelar este pedido?" @endif>
                                                 {{ $nextStatus === 'preparing' ? 'Preparar' : ($nextStatus === 'delivered' ? 'Entregar' : 'Cancelar') }}
                                             </button>
                                         </form>
@@ -162,7 +205,7 @@
                                     @endforelse
                                 </div>
                             </div>
-                        </section>
+                        </details>
                     @endforeach
                 </div>
             </article>

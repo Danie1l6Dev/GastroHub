@@ -43,16 +43,16 @@
                             <p class="mt-1 font-semibold tabular-nums text-zinc-950">{{ $billing['total_formatted'] }}</p>
                         </div>
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Pagado</p>
-                            <p class="mt-1 font-semibold tabular-nums text-emerald-700">{{ $billing['paid_formatted'] }}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Saldo</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Por cobrar</p>
                             <p class="mt-1 font-semibold tabular-nums text-amber-700">{{ $billing['balance_formatted'] }}</p>
                         </div>
                         <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Pedidos</p>
+                            <p class="mt-1 font-semibold {{ $billing['payment_ready'] ? 'text-emerald-700' : 'text-amber-700' }}">{{ $billing['payment_ready'] ? 'Entregados' : 'En proceso' }}</p>
+                        </div>
+                        <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Estado</p>
-                            <p class="mt-1 font-semibold {{ $billing['is_paid'] ? 'text-emerald-700' : 'text-amber-700' }}">{{ $billing['is_paid'] ? 'Pagada' : 'Pendiente' }}</p>
+                            <p class="mt-1 font-semibold {{ $billing['is_paid'] ? 'text-emerald-700' : 'text-amber-700' }}">{{ $billing['is_paid'] ? 'Pago confirmado' : 'Pendiente de cobro' }}</p>
                         </div>
                     </div>
                 @endif
@@ -65,10 +65,10 @@
                         @csrf
                         <button class="gh-btn min-h-10 w-full border border-amber-200 bg-white px-3 text-amber-800 hover:bg-amber-50 sm:w-auto" data-confirm="Regenerar el QR cerrara la sesion activa de esta mesa. Continuar?">Regenerar token</button>
                     </form>
-                    @if ($billing && $billing['is_paid'])
+                    @if ($billing && ($billing['payment_ready'] || $billing['is_paid']))
                         <form method="POST" action="{{ route('admin.tables.close-session', $table) }}">
                             @csrf
-                            <button class="gh-btn min-h-10 w-full border border-emerald-200 bg-white px-3 text-emerald-800 hover:bg-emerald-50 sm:w-auto" data-confirm="Cerrar esta mesa y liberarla?">Cerrar mesa</button>
+                            <button class="gh-btn min-h-10 w-full border border-emerald-200 bg-white px-3 text-emerald-800 hover:bg-emerald-50 sm:w-auto" data-confirm="Confirmar el pago recibido y cerrar esta mesa?">Confirmar pago y cerrar mesa</button>
                         </form>
                     @endif
                     <form method="POST" action="{{ route('admin.tables.destroy', $table) }}">

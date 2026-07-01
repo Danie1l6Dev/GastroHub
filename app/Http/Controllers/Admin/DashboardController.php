@@ -22,8 +22,10 @@ class DashboardController extends Controller
             ->whereIn('current_status', [TableStatus::Occupied->value, TableStatus::PaymentPending->value])
             ->count();
         $todaySales = Order::query()
-            ->whereDate('placed_at', today())
             ->where('status', '!=', 'cancelled')
+            ->whereHas('tableSession', fn ($query) => $query
+                ->where('status', 'closed')
+                ->whereDate('closed_at', today()))
             ->sum('subtotal');
         $deliveredOrders = Order::query()->where('status', 'delivered')->count();
         $availableProducts = Product::query()->where('is_available', true)->count();
@@ -42,7 +44,7 @@ class DashboardController extends Controller
                 ['label' => 'Pedidos nuevos', 'value' => $newOrders, 'hint' => 'Esperando cocina', 'tone' => 'warning'],
                 ['label' => 'Pedidos preparando', 'value' => $preparingOrders, 'hint' => 'En cocina ahora', 'tone' => 'info'],
                 ['label' => 'Mesas activas', 'value' => $activeTables, 'hint' => 'Ocupadas o por cerrar', 'tone' => 'dark'],
-                ['label' => 'Ventas simuladas del dia', 'value' => '$'.number_format((int) $todaySales, 0, ',', '.'), 'hint' => 'Pedidos no cancelados', 'tone' => 'success'],
+                ['label' => 'Ventas del dia', 'value' => '$'.number_format((int) $todaySales, 0, ',', '.'), 'hint' => 'Mesas cerradas por el mesero', 'tone' => 'success'],
                 ['label' => 'Entregados', 'value' => $deliveredOrders, 'hint' => 'Historico entregado', 'tone' => 'success'],
                 ['label' => 'Productos disponibles', 'value' => $availableProducts, 'hint' => 'Listos para vender', 'tone' => 'neutral'],
             ],

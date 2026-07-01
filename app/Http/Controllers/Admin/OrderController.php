@@ -56,10 +56,7 @@ class OrderController extends Controller
         ]);
 
         $mainOrders = $session->orders()
-            ->where(function ($query) use ($session): void {
-                $query->whereNull('placed_at')
-                    ->orWhere('placed_at', '<=', $session->confirmed_at);
-            })
+            ->where('is_additional', false)
             ->get();
 
         $this->orderStatuses->transitionMany($mainOrders, $validated['status']);

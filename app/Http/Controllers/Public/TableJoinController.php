@@ -12,7 +12,6 @@ use App\Models\DiningTable;
 use App\Models\Product;
 use App\Models\RestaurantSetting;
 use App\Models\TableGuest;
-use App\Services\TableBillingService;
 use App\Services\TableSessionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +23,6 @@ class TableJoinController extends Controller
 {
     public function __construct(
         private readonly TableSessionService $tableSessionService,
-        private readonly TableBillingService $tableBillingService,
     ) {}
 
     public function __invoke(string $qrToken, Request $request): View|Response
@@ -265,14 +263,6 @@ class TableJoinController extends Controller
 
         $guest->refresh()->load('tableSession');
 
-        if ($request->boolean('is_ready') && $guest->tableSession?->account_mode === TableAccountMode::Separate) {
-            $request->session()->forget([
-                $this->aliasSessionKey($table),
-                $this->guestSessionKey($table),
-                $this->guestTokenSessionKey($table),
-            ]);
-        }
-
         return response()->json($this->tableSessionService->state(
             table: $table,
             guestId: $this->currentGuestForRequest($request, $table)?->id,
@@ -297,48 +287,6 @@ class TableJoinController extends Controller
         return response()->json($this->tableSessionService->state(
             table: $table,
             guestId: $this->currentGuestForRequest($request, $table)?->id,
-            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
-        ));
-    }
-
-    public function payIndividual(string $qrToken, Request $request): JsonResponse|Response
-    {
-        $table = $this->activeTableResponse($qrToken);
-
-        if (! $table instanceof DiningTable) {
-            return $table;
-        }
-
-        $guest = $this->currentGuestForRequest($request, $table);
-
-        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
-
-        $this->tableBillingService->payIndividual($table, $guest);
-
-        return response()->json($this->tableSessionService->state(
-            table: $table,
-            guestId: $guest->id,
-            coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
-        ));
-    }
-
-    public function payFullTable(string $qrToken, Request $request): JsonResponse|Response
-    {
-        $table = $this->activeTableResponse($qrToken);
-
-        if (! $table instanceof DiningTable) {
-            return $table;
-        }
-
-        $guest = $this->currentGuestForRequest($request, $table);
-
-        abort_unless($guest, 403, 'Primero escribe tu nombre o alias.');
-
-        $this->tableBillingService->payFullTable($table, $guest);
-
-        return response()->json($this->tableSessionService->state(
-            table: $table,
-            guestId: $guest->id,
             coordinatorGuestId: $this->coordinatorGuestIdForRequest($request, $table)
         ));
     }

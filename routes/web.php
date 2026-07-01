@@ -23,8 +23,6 @@ Route::post('/table/{qrToken}/items', [TableJoinController::class, 'item'])->nam
 Route::post('/table/{qrToken}/cart/clear', [TableJoinController::class, 'clearCart'])->name('tables.cart.clear');
 Route::post('/table/{qrToken}/ready', [TableJoinController::class, 'ready'])->name('tables.ready');
 Route::post('/table/{qrToken}/confirm', [TableJoinController::class, 'confirm'])->name('tables.confirm');
-Route::post('/table/{qrToken}/pay/individual', [TableJoinController::class, 'payIndividual'])->name('tables.pay.individual');
-Route::post('/table/{qrToken}/pay/full', [TableJoinController::class, 'payFullTable'])->name('tables.pay.full');
 Route::get('/mesa/{qrToken}', TableJoinController::class)->name('tables.legacy-join');
 
 Route::middleware('guest')->group(function (): void {

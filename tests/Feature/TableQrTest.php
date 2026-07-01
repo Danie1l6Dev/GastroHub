@@ -80,7 +80,12 @@ class TableQrTest extends TestCase
             ->assertOk()
             ->assertSee('Ingresaste como')
             ->assertSee('Laura')
-            ->assertSee('Ver menu');
+            ->assertSee('Seleccionar platos')
+            ->assertSee('aria-label="Ir al inicio del restaurante"', false)
+            ->assertDontSee('>Inicio<', false)
+            ->assertDontSee('>Menu<', false)
+            ->assertDontSee('>Panel<', false)
+            ->assertDontSee('Ver menu');
     }
 
     public function test_guest_identity_uses_token_and_joined_at(): void
@@ -416,6 +421,8 @@ class TableQrTest extends TestCase
             'is_ready' => true,
         ])->assertOk()
             ->assertJsonCount(2, 'guests.0.orders')
+            ->assertJsonPath('guests.0.orders.0.is_additional', false)
+            ->assertJsonPath('guests.0.orders.1.is_additional', true)
             ->assertJsonPath('guests.0.orders.1.items.0.name', 'Postre')
             ->assertJsonPath('guests.0.subtotal', 36000);
 
@@ -774,7 +781,7 @@ class TableQrTest extends TestCase
             'is_ready' => true,
         ])->assertOk()
             ->assertJsonPath('all_guests_ready', true)
-            ->assertJsonPath('current_guest_id', null)
+            ->assertJsonPath('current_guest_id', $anaId)
             ->assertJsonPath('device_can_confirm_order', true)
             ->assertJsonPath('can_confirm_order', true);
 
@@ -899,7 +906,7 @@ class TableQrTest extends TestCase
 
         $this->getJson(route('tables.state', $table->qr_token))
             ->assertOk()
-            ->assertJsonPath('current_guest_id', null)
+            ->assertJsonPath('current_guest_id', $anaId)
             ->assertJsonPath('device_can_confirm_order', false)
             ->assertJsonPath('can_confirm_order', false);
 
@@ -970,12 +977,12 @@ class TableQrTest extends TestCase
         $this->postJson(route('tables.ready', $table->qr_token), [
             'is_ready' => true,
         ])->assertOk()
-            ->assertJsonPath('current_guest_id', null);
+            ->assertJsonPath('current_guest_id', $lauraId);
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,
             'delta' => 1,
-        ])->assertForbidden();
+        ])->assertUnprocessable();
 
         $this->postJson(route('tables.guests.select', [$table->qr_token, $lauraToken]))
             ->assertOk()
@@ -1089,7 +1096,7 @@ class TableQrTest extends TestCase
             ->assertJsonPath('bill.balance', 18000);
     }
 
-    public function test_guest_can_pay_individual_and_cannot_pay_twice(): void
+    public function test_table_account_stays_pending_until_admin_confirms_payment(): void
     {
         $table = DiningTable::factory()->create(['is_active' => true]);
         $product = Product::factory()->create(['price' => 22000, 'is_available' => true]);
@@ -1103,15 +1110,15 @@ class TableQrTest extends TestCase
         $this->postJson(route('tables.guests.select', [$table->qr_token, TableGuest::firstOrFail()->guest_token]))->assertOk();
         Order::query()->update(['status' => 'delivered']);
 
-        $this->postJson(route('tables.pay.individual', $table->qr_token))
+        $this->getJson(route('tables.state', $table->qr_token))
             ->assertOk()
-            ->assertJsonPath('bill.participants.0.paid', 22000)
-            ->assertJsonPath('bill.participants.0.balance', 0)
-            ->assertJsonPath('bill.is_paid', true);
+            ->assertJsonPath('bill.payment_ready', true)
+            ->assertJsonPath('bill.participants.0.consumed', 22000)
+            ->assertJsonPath('bill.participants.0.balance', 22000)
+            ->assertJsonPath('bill.paid', 0)
+            ->assertJsonPath('bill.is_paid', false);
 
-        $this->postJson(route('tables.pay.individual', $table->qr_token))->assertUnprocessable();
-
-        $this->assertSame(1, Payment::where('type', 'individual')->where('status', 'paid')->count());
+        $this->assertSame(0, Payment::where('status', 'paid')->count());
     }
 
     public function test_payments_are_hidden_until_order_is_confirmed_and_delivered(): void
@@ -1129,10 +1136,7 @@ class TableQrTest extends TestCase
         $this->getJson(route('tables.state', $table->qr_token))
             ->assertOk()
             ->assertJsonPath('bill.payment_ready', false)
-            ->assertJsonPath('bill.can_pay_full_table', false)
             ->assertJsonPath('bill.participants.0.can_pay_individual', false);
-
-        $this->postJson(route('tables.pay.individual', $table->qr_token))->assertUnprocessable();
 
         $this->postJson(route('tables.confirm', $table->qr_token))->assertOk();
 
@@ -1140,19 +1144,18 @@ class TableQrTest extends TestCase
             ->assertOk()
             ->assertJsonPath('bill.payment_ready', false);
 
-        $this->postJson(route('tables.pay.full', $table->qr_token))->assertUnprocessable();
-
         Order::query()->update(['status' => 'delivered']);
 
         $this->getJson(route('tables.state', $table->qr_token))
             ->assertOk()
             ->assertJsonPath('bill.payment_ready', true)
-            ->assertJsonPath('bill.can_pay_full_table', true)
-            ->assertJsonPath('bill.participants.0.can_pay_individual', true);
+            ->assertJsonPath('bill.can_pay_full_table', false)
+            ->assertJsonPath('bill.participants.0.can_pay_individual', false);
     }
 
-    public function test_guest_can_pay_full_table_and_prevent_later_individual_payment(): void
+    public function test_admin_close_confirms_full_table_payment(): void
     {
+        $admin = User::factory()->create();
         $table = DiningTable::factory()->create(['is_active' => true]);
         $product = Product::factory()->create(['price' => 15000, 'is_available' => true]);
         $this->chooseSeparateAccountMode($table);
@@ -1165,15 +1168,15 @@ class TableQrTest extends TestCase
         $this->postJson(route('tables.guests.select', [$table->qr_token, TableGuest::firstOrFail()->guest_token]))->assertOk();
         Order::query()->update(['status' => 'delivered']);
 
-        $this->postJson(route('tables.pay.full', $table->qr_token))
-            ->assertOk()
-            ->assertJsonPath('bill.paid', 15000)
-            ->assertJsonPath('bill.balance', 0)
-            ->assertJsonPath('bill.is_paid', true);
-
-        $this->postJson(route('tables.pay.individual', $table->qr_token))->assertUnprocessable();
+        $this->actingAs($admin)
+            ->post(route('admin.tables.close-session', $table))
+            ->assertRedirect(route('admin.tables.index'));
 
         $this->assertSame(1, Payment::where('type', 'full_table')->where('status', 'paid')->count());
+        $this->assertDatabaseHas('table_sessions', [
+            'dining_table_id' => $table->id,
+            'status' => 'closed',
+        ]);
     }
 
     public function test_joint_payment_mode_only_allows_account_payment(): void
@@ -1196,17 +1199,11 @@ class TableQrTest extends TestCase
             ->assertJsonPath('account_mode', 'joint')
             ->assertJsonPath('bill.payment_ready', true)
             ->assertJsonPath('bill.participants.0.can_pay_individual', false)
-            ->assertJsonPath('bill.can_pay_full_table', true);
-
-        $this->postJson(route('tables.pay.individual', $table->qr_token))->assertUnprocessable();
-
-        $this->postJson(route('tables.pay.full', $table->qr_token))
-            ->assertOk()
-            ->assertJsonPath('bill.paid', 27000)
-            ->assertJsonPath('bill.is_paid', true);
+            ->assertJsonPath('bill.can_pay_full_table', false)
+            ->assertJsonPath('bill.balance', 27000);
     }
 
-    public function test_admin_can_close_paid_session_and_release_table(): void
+    public function test_admin_can_confirm_payment_close_session_and_release_table(): void
     {
         $admin = User::factory()->create();
         $table = DiningTable::factory()->create(['is_active' => true]);
@@ -1219,7 +1216,6 @@ class TableQrTest extends TestCase
         $this->postJson(route('tables.confirm', $table->qr_token))->assertOk();
         $this->postJson(route('tables.guests.select', [$table->qr_token, TableGuest::firstOrFail()->guest_token]))->assertOk();
         Order::query()->update(['status' => 'delivered']);
-        $this->postJson(route('tables.pay.full', $table->qr_token))->assertOk();
 
         $this->actingAs($admin)
             ->post(route('admin.tables.close-session', $table))
@@ -1231,6 +1227,11 @@ class TableQrTest extends TestCase
         ]);
         $this->assertSame(TableStatus::Available, $table->refresh()->current_status);
         $this->assertNotNull(TableSession::where('dining_table_id', $table->id)->first()?->closed_at);
+        $this->assertDatabaseHas('payments', [
+            'type' => 'full_table',
+            'status' => 'paid',
+            'amount' => 15000,
+        ]);
 
         $this->postJson(route('tables.items', $table->qr_token), [
             'product_id' => $product->id,

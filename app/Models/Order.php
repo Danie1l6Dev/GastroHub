@@ -16,12 +16,14 @@ class Order extends Model
         'total',
         'notes',
         'placed_at',
+        'is_additional',
     ];
 
     protected function casts(): array
     {
         return [
             'placed_at' => 'datetime',
+            'is_additional' => 'boolean',
         ];
     }
 

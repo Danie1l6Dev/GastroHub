@@ -21,11 +21,26 @@
         </div>
 
         @if ($categories->isNotEmpty())
-            <nav class="sticky top-[4.25rem] z-30 mt-5 flex gap-2 overflow-x-auto rounded-2xl border border-zinc-200/80 bg-white/90 p-2 shadow-sm shadow-zinc-950/[0.04] backdrop-blur-xl" aria-label="Categorias del menu">
-                @foreach ($categories as $category)
-                    <a href="#{{ $category->slug }}" class="shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100 focus:bg-zinc-950 focus:text-white">{{ $category->name }}</a>
-                @endforeach
-            </nav>
+            <div class="sticky top-[4.25rem] z-30 mt-5" data-menu-category-select data-open="false">
+                <div class="relative">
+                    <button type="button" data-menu-category-toggle class="flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/90 px-4 py-3 text-left text-sm font-semibold text-zinc-950 shadow-sm shadow-zinc-950/[0.04] backdrop-blur-xl transition hover:bg-white active:scale-[0.99]" aria-expanded="false">
+                        <span class="min-w-0">
+                            <span class="block text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">Seccion</span>
+                            <span data-menu-category-label class="block truncate">{{ $categories->first()->name }}</span>
+                        </span>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-lg leading-none text-zinc-700" aria-hidden="true">v</span>
+                    </button>
+
+                    <nav class="gh-category-select-panel absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-950/10" aria-label="Categorias del menu">
+                        @foreach ($categories as $category)
+                            <a href="#{{ $category->slug }}" data-menu-category-option data-category-label="{{ $category->name }}" class="flex min-h-11 items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 focus:bg-zinc-950 focus:text-white">
+                                <span class="min-w-0 truncate">{{ $category->name }}</span>
+                                <span class="shrink-0 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-500">{{ $category->visibleProducts->count() }}</span>
+                            </a>
+                        @endforeach
+                    </nav>
+                </div>
+            </div>
         @endif
 
         <div class="mt-8 space-y-12">
@@ -99,6 +114,39 @@
             const products = [...root.querySelectorAll('[data-menu-product]')];
             const categories = [...root.querySelectorAll('[data-menu-category]')];
             const empty = root.querySelector('[data-menu-empty]');
+            const categorySelect = root.querySelector('[data-menu-category-select]');
+            const categoryToggle = root.querySelector('[data-menu-category-toggle]');
+            const categoryLabel = root.querySelector('[data-menu-category-label]');
+
+            const closeCategorySelect = () => {
+                categorySelect?.setAttribute('data-open', 'false');
+                categoryToggle?.setAttribute('aria-expanded', 'false');
+            };
+
+            categoryToggle?.addEventListener('click', () => {
+                const isOpen = categorySelect?.dataset.open === 'true';
+                categorySelect?.setAttribute('data-open', isOpen ? 'false' : 'true');
+                categoryToggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+            });
+
+            root.querySelectorAll('[data-menu-category-option]').forEach((option) => {
+                option.addEventListener('click', () => {
+                    categoryLabel.textContent = option.dataset.categoryLabel || option.textContent.trim();
+                    closeCategorySelect();
+                });
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!categorySelect || categorySelect.contains(event.target)) return;
+
+                closeCategorySelect();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeCategorySelect();
+                }
+            });
 
             search?.addEventListener('input', () => {
                 const query = search.value.trim().toLowerCase();

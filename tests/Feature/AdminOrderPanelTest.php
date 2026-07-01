@@ -11,6 +11,7 @@ use App\Models\TableGuest;
 use App\Models\TableSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class AdminOrderPanelTest extends TestCase
@@ -193,6 +194,11 @@ class AdminOrderPanelTest extends TestCase
         $this->createOrder(['status' => 'new', 'subtotal' => 12000, 'total' => 12000]);
         $this->createOrder(['status' => 'preparing', 'subtotal' => 18000, 'total' => 18000]);
         $this->createOrder(['status' => 'cancelled', 'subtotal' => 50000, 'total' => 50000]);
+        $closedOrder = $this->createOrder(['status' => 'delivered', 'subtotal' => 30000, 'total' => 30000]);
+        $closedOrder->tableSession->forceFill([
+            'status' => 'closed',
+            'closed_at' => now(),
+        ])->save();
         $this->createOrder([
             'status' => 'delivered',
             'subtotal' => 9000,
@@ -205,7 +211,7 @@ class AdminOrderPanelTest extends TestCase
             ->assertSee('Pedidos nuevos')
             ->assertSee('Pedidos preparando')
             ->assertSee('Mesas activas')
-            ->assertSee('Ventas simuladas del dia')
+            ->assertSee('Ventas del dia')
             ->assertSee('1')
             ->assertSee('2')
             ->assertSee('$30.000');
@@ -295,6 +301,8 @@ class AdminOrderPanelTest extends TestCase
             'subtotal' => $unitPrice * $quantity,
             'total' => $unitPrice * $quantity,
             'placed_at' => $placedAt,
+            'is_additional' => $session->confirmed_at
+                && Carbon::parse($placedAt)->greaterThan($session->confirmed_at),
         ]);
 
         $product = Product::factory()

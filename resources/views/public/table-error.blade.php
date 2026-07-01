@@ -1,4 +1,4 @@
-@extends('layouts.app', ['title' => 'Mesa no disponible'])
+@extends('layouts.app', ['title' => 'Mesa no disponible', 'qrLayout' => true])
 
 @section('content')
     <section class="mx-auto max-w-2xl px-4 py-12">

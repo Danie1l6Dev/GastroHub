@@ -24,8 +24,6 @@ class TableBillingService
         $paymentReady = (bool) $session->confirmed_at
             && $billableOrders->isNotEmpty()
             && $billableOrders->every(fn ($order): bool => $order->status === 'delivered');
-        $isJointAccount = $session->account_mode === TableAccountMode::Joint;
-
         $fullTablePaid = (int) $session->payments
             ->where('type', 'full_table')
             ->where('status', 'paid')
@@ -34,7 +32,7 @@ class TableBillingService
         $participants = $session->guests
             ->sortBy('id')
             ->values()
-            ->map(function (TableGuest $guest) use ($fullTablePaid, $isJointAccount, $paymentReady): array {
+            ->map(function (TableGuest $guest) use ($fullTablePaid): array {
                 $orders = $guest->orders
                     ->where('status', '!=', 'cancelled')
                     ->values();
@@ -68,10 +66,7 @@ class TableBillingService
                     'paid_formatted' => $this->money($paid),
                     'balance' => max($consumed - $paid, 0),
                     'balance_formatted' => $this->money(max($consumed - $paid, 0)),
-                    'can_pay_individual' => $paymentReady
-                        && ! $isJointAccount
-                        && $fullTablePaid === 0
-                        && max($consumed - $paid, 0) > 0,
+                    'can_pay_individual' => false,
                 ];
             });
 
@@ -94,7 +89,7 @@ class TableBillingService
             'is_paid' => $total > 0 && $balance === 0,
             'payment_ready' => $paymentReady,
             'payment_ready_message' => $this->paymentReadyMessage($session, $billableOrders->isNotEmpty(), $paymentReady),
-            'can_pay_full_table' => $paymentReady && $balance > 0,
+            'can_pay_full_table' => false,
             'payments' => $session->payments
                 ->where('status', 'paid')
                 ->sortByDesc('paid_at')
@@ -188,7 +183,25 @@ class TableBillingService
 
             $summary = $this->summary($session->fresh(['guests.orders.items', 'payments.tableGuest', 'diningTable']));
 
-            abort_unless($summary['is_paid'], 422, 'No puedes cerrar una mesa con saldo pendiente.');
+            abort_unless(
+                $summary['is_paid'] || $summary['payment_ready'],
+                422,
+                $summary['payment_ready_message']
+            );
+
+            if (! $summary['is_paid'] && (int) $summary['balance'] > 0) {
+                $session->payments()->create([
+                    'table_guest_id' => null,
+                    'scope' => 'full_table',
+                    'type' => 'full_table',
+                    'amount' => (int) $summary['balance'],
+                    'status' => 'paid',
+                    'paid_at' => now(),
+                    'reference' => $this->reference('ADMIN'),
+                ]);
+
+                $session->guests()->update(['paid_at' => now()]);
+            }
 
             $session->forceFill([
                 'status' => 'closed',
@@ -231,18 +244,18 @@ class TableBillingService
     private function paymentReadyMessage(TableSession $session, bool $hasBillableOrders, bool $paymentReady): string
     {
         if ($paymentReady) {
-            return 'La cuenta ya esta lista para pagar.';
+            return 'La cuenta ya esta lista para cobrar.';
         }
 
         if (! $session->confirmed_at) {
-            return 'Confirma el pedido final para habilitar los pagos.';
+            return 'Confirma el pedido final para preparar la cuenta.';
         }
 
         if (! $hasBillableOrders) {
-            return 'Todavia no hay pedidos para pagar.';
+            return 'Todavia no hay pedidos para cobrar.';
         }
 
-        return 'Los pagos se habilitan cuando todos los pedidos esten entregados.';
+        return 'La cuenta se puede cerrar cuando todos los pedidos esten entregados.';
     }
 
     private function money(int $value): string

@@ -83,10 +83,10 @@ class OrderTicketService
         }
 
         $mainOrders = $orders
-            ->filter(fn (Order $order): bool => ! $order->placed_at || $order->placed_at->lessThanOrEqualTo($confirmedAt))
+            ->filter(fn (Order $order): bool => ! $order->is_additional)
             ->values();
         $extraOrders = $orders
-            ->filter(fn (Order $order): bool => $order->placed_at && $order->placed_at->greaterThan($confirmedAt))
+            ->filter(fn (Order $order): bool => (bool) $order->is_additional)
             ->values();
 
         return collect()
