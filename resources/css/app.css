@@ -215,10 +215,8 @@
     }
 }
 
-@media (max-width: 1023px) {
-    [data-table-panel][data-mobile-hidden='true'] {
-        display: none;
-    }
+[data-table-panel][data-step-hidden='true'] {
+    display: none;
 }
 
 @keyframes gh-fade-up {

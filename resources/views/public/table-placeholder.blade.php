@@ -23,8 +23,8 @@
 
         <div data-error class="mb-4 hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"></div>
 
-        <div data-mobile-progress class="-mx-4 mb-4 hidden overflow-x-auto px-4 lg:hidden" aria-label="Progreso del pedido">
-            <div class="flex w-max min-w-full gap-2">
+        <div data-mobile-progress class="mb-4 hidden overflow-x-auto" aria-label="Progreso del pedido">
+            <div class="flex w-max min-w-full gap-2 sm:grid sm:w-full sm:grid-cols-5">
                 <button type="button" data-module-link="alias" class="gh-step-chip gh-step-chip-active">1. Alias</button>
                 <button type="button" data-module-link="menu" class="gh-step-chip">2. Platos</button>
                 <button type="button" data-module-link="cart" class="gh-step-chip">3. Carrito</button>
@@ -59,8 +59,8 @@
             </div>
         </section>
 
-        <div data-workspace class="grid min-w-0 gap-4 lg:grid-cols-[20rem_1fr] lg:gap-5">
-            <aside class="min-w-0 space-y-4 lg:sticky lg:top-5 lg:self-start">
+        <div data-workspace class="mx-auto grid max-w-4xl min-w-0 gap-4 lg:gap-5">
+            <aside class="min-w-0 space-y-4">
                 <section id="alias" data-table-panel data-module="alias" class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-center justify-between gap-3">
                         <div>
@@ -99,7 +99,7 @@
                     <div data-guests class="mt-4 space-y-3"></div>
                 </section>
 
-                <section class="hidden rounded-md border border-zinc-200 bg-zinc-950 p-5 text-white shadow-sm lg:block">
+                <section data-table-panel data-module="people" class="hidden rounded-md border border-zinc-200 bg-zinc-950 p-5 text-white shadow-sm lg:block">
                     <p class="text-sm text-zinc-300">Total de la mesa</p>
                     <p data-table-total class="mt-2 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
@@ -131,7 +131,7 @@
             </aside>
 
             <div class="min-w-0 space-y-4">
-                <section id="menu-mesa" data-table-panel data-module="menu" class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+                <section id="menu-mesa" data-table-panel data-module="menu" class="overflow-visible rounded-2xl border border-zinc-200 bg-white shadow-sm">
                     <div class="border-b border-zinc-100 p-4 sm:p-5">
                         <div class="grid gap-4 lg:grid-cols-[1fr_16rem] lg:items-end">
                             <div>
@@ -146,7 +146,7 @@
                         <p data-selection-lock class="mt-3 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950"></p>
                     </div>
                     <div data-products class="p-4 sm:p-5"></div>
-                    <div data-menu-cart-cta class="gh-module-sticky mx-4 mb-4 hidden lg:hidden">
+                    <div data-menu-cart-cta class="gh-module-sticky mx-4 mb-4 hidden">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
                                 <p data-menu-cart-count class="text-xs font-semibold text-zinc-500">0 productos</p>
@@ -188,7 +188,7 @@
                     <div data-orders-breakdown class="mt-4 space-y-4"></div>
                 </section>
 
-                <section class="hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5 lg:block">
+                <section data-table-panel data-module="people" class="hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5 lg:block">
                     <h2 class="text-lg font-semibold text-zinc-950">Detalle compartido</h2>
                     <div data-breakdown class="mt-4 space-y-4"></div>
                 </section>
@@ -216,7 +216,11 @@
             let currentGuestId = root.dataset.initialGuestId ? Number(root.dataset.initialGuestId) : null;
             let selectedCategoryId = null;
             let productPageByCategory = {};
+            const stepModules = ['alias', 'menu', 'cart', 'orders', 'account'];
             let activeModule = sessionStorage.getItem(`table:${root.dataset.stateUrl}:module`) || (currentGuestId ? 'menu' : 'alias');
+            if (!stepModules.includes(activeModule)) {
+                activeModule = currentGuestId ? 'menu' : 'alias';
+            }
             let state = null;
             let lastProductRenderKey = null;
             let openGuestOrderToken = null;
@@ -273,7 +277,7 @@
 
             const updateModuleVisibility = () => {
                 root.querySelectorAll('[data-table-panel]').forEach((panel) => {
-                    panel.dataset.mobileHidden = panel.dataset.module === activeModule ? 'false' : 'true';
+                    panel.dataset.stepHidden = panel.dataset.module === activeModule ? 'false' : 'true';
                 });
 
                 root.querySelectorAll('[data-module-link], [data-mobile-progress] .gh-step-chip').forEach((item) => {
@@ -500,8 +504,8 @@
                     : `${products.length} platos en esta seccion`;
 
                 target.innerHTML = `
-                    <div class="sticky top-0 z-20 -mx-4 border-b border-zinc-100 bg-white/95 px-4 pb-3 pt-1 backdrop-blur-xl sm:mx-0 sm:px-0 lg:static lg:bg-transparent lg:backdrop-blur-0">
-                        <div class="relative" data-category-select data-open="false">
+                    <div class="sticky top-0 z-50 -mx-4 border-b border-zinc-100 bg-white/95 px-4 pb-3 pt-1 backdrop-blur-xl sm:mx-0 sm:px-0 lg:static lg:bg-transparent lg:backdrop-blur-0">
+                        <div class="relative z-50" data-category-select data-open="false">
                             <button
                                 type="button"
                                 data-category-select-toggle
@@ -514,7 +518,7 @@
                                 </span>
                                 <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-lg leading-none text-zinc-700" aria-hidden="true">v</span>
                             </button>
-                            <div class="gh-category-select-panel absolute left-0 right-0 top-full z-40 mt-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-950/10" role="listbox" aria-label="Secciones del menu">
+                            <div class="gh-category-select-panel relative z-[60] mt-2 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl shadow-zinc-950/10" role="listbox" aria-label="Secciones del menu">
                             ${state.categories.map((category) => `
                                 <button
                                     type="button"
@@ -950,6 +954,9 @@
                                         Pedir adicional
                                     </button>
                                 </div>
+                                <button type="button" data-module-link="account" class="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-zinc-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-950 shadow-sm shadow-zinc-950/[0.03] transition hover:bg-zinc-50 active:scale-[0.98]">
+                                    Ver cuenta de la mesa
+                                </button>
                             </section>
                         ` : ''}
                     `
@@ -965,23 +972,25 @@
                 const panel = root.querySelector('[data-bill-panel]');
                 const summary = root.querySelector('[data-bill-summary]');
                 const status = root.querySelector('[data-bill-status]');
-                const paymentVisible = bill && bill.total > 0 && (bill.payment_ready || bill.is_paid);
+                const accountVisible = bill && bill.total > 0 && state.order_confirmed;
                 const isJointMode = state.account_mode === 'joint';
 
-                panel.classList.toggle('hidden', !paymentVisible);
+                panel.classList.toggle('hidden', !accountVisible);
 
-                if (!paymentVisible) {
+                if (!accountVisible) {
                     return;
                 }
 
-                status.textContent = bill.is_paid ? 'Cerrada' : 'Por cobrar';
-                status.className = `rounded-md px-2 py-1 text-xs font-semibold ${bill.is_paid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`;
+                status.textContent = bill.is_paid ? 'Cerrada' : (bill.payment_ready ? 'Por cobrar' : 'En preparacion');
+                status.className = `rounded-md px-2 py-1 text-xs font-semibold ${bill.is_paid ? 'bg-emerald-100 text-emerald-800' : (bill.payment_ready ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800')}`;
 
                 summary.innerHTML = `
-                    <div class="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950">
+                    <div class="rounded-2xl border ${bill.payment_ready || bill.is_paid ? 'border-amber-200 bg-amber-50 text-amber-950' : 'border-sky-200 bg-sky-50 text-sky-950'} p-3 text-sm leading-6">
                         ${bill.is_paid
                             ? 'La mesa ya fue cerrada por el restaurante.'
-                            : 'Este es el resumen para pagar en efectivo o transferencia. El restaurante confirma el pago y cierra la mesa desde el panel.'}
+                            : (bill.payment_ready
+                                ? 'Este es el resumen para pagar en efectivo o transferencia. El restaurante confirma el pago y cierra la mesa desde el panel.'
+                                : 'Esta es la cuenta acumulada hasta ahora. El cobro queda pendiente hasta que todos los pedidos esten entregados.')}
                     </div>
                     <div class="grid gap-2 rounded-2xl bg-zinc-50 p-3 text-center sm:grid-cols-2">
                         <div>
