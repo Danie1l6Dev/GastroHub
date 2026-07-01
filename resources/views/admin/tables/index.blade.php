@@ -23,7 +23,7 @@
                             <span class="font-semibold text-zinc-700">Codigo {{ $table->code }}</span>
                             <span class="text-zinc-400">&middot;</span>
                             <span class="text-zinc-500">Capacidad: {{ $table->capacity ?: 'Sin definir' }}</span>
-                            <span class="rounded-full px-2 py-1 font-semibold {{ $table->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700' }}">
+                            <span class="rounded-full px-2 py-1 font-semibold {{ $table->is_active ? 'bg-brand-red-soft text-brand-red' : 'bg-zinc-200 text-zinc-700' }}">
                                 {{ $table->is_active ? 'Activa' : 'Inactiva' }}
                             </span>
                             <span class="rounded-full bg-zinc-100 px-2 py-1 font-semibold text-zinc-700">{{ $table->current_status->label() }}</span>
@@ -44,15 +44,15 @@
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Por cobrar</p>
-                            <p class="mt-1 font-semibold tabular-nums text-amber-700">{{ $billing['balance_formatted'] }}</p>
+                            <p class="mt-1 font-semibold tabular-nums text-brand-red">{{ $billing['balance_formatted'] }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Pedidos</p>
-                            <p class="mt-1 font-semibold {{ $billing['payment_ready'] ? 'text-emerald-700' : 'text-amber-700' }}">{{ $billing['payment_ready'] ? 'Entregados' : 'En proceso' }}</p>
+                            <p class="mt-1 font-semibold {{ $billing['payment_ready'] ? 'text-brand-ink' : 'text-brand-orange-dark' }}">{{ $billing['payment_ready'] ? 'Entregados' : 'En proceso' }}</p>
                         </div>
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Estado</p>
-                            <p class="mt-1 font-semibold {{ $billing['is_paid'] ? 'text-emerald-700' : 'text-amber-700' }}">{{ $billing['is_paid'] ? 'Pago confirmado' : 'Pendiente de cobro' }}</p>
+                            <p class="mt-1 font-semibold {{ $billing['is_paid'] ? 'text-brand-ink' : 'text-brand-red' }}">{{ $billing['is_paid'] ? 'Pago confirmado' : 'Pendiente de cobro' }}</p>
                         </div>
                     </div>
                 @endif
@@ -63,12 +63,12 @@
                     <a href="{{ route('admin.tables.qr.print', $table) }}" target="_blank" rel="noopener noreferrer" class="gh-btn gh-btn-secondary min-h-10 px-3">Imprimir</a>
                     <form method="POST" action="{{ route('admin.tables.regenerate-token', $table) }}">
                         @csrf
-                        <button class="gh-btn min-h-10 w-full border border-amber-200 bg-white px-3 text-amber-800 hover:bg-amber-50 sm:w-auto" data-confirm="Regenerar el QR cerrara la sesion activa de esta mesa. Continuar?">Regenerar token</button>
+                        <button class="gh-btn min-h-10 w-full border border-brand-orange/50 bg-white px-3 text-brand-ink hover:bg-brand-orange-soft sm:w-auto" data-confirm="Regenerar el QR cerrara la sesion activa de esta mesa. Continuar?">Regenerar token</button>
                     </form>
                     @if ($billing && ($billing['payment_ready'] || $billing['is_paid']))
                         <form method="POST" action="{{ route('admin.tables.close-session', $table) }}">
                             @csrf
-                            <button class="gh-btn min-h-10 w-full border border-emerald-200 bg-white px-3 text-emerald-800 hover:bg-emerald-50 sm:w-auto" data-confirm="Confirmar el pago recibido y cerrar esta mesa?">Confirmar pago y cerrar mesa</button>
+                            <button class="gh-btn min-h-10 w-full border border-brand-ink bg-brand-ink px-3 text-white hover:bg-brand-brown-dark sm:w-auto" data-confirm="Confirmar el pago recibido y cerrar esta mesa?">Confirmar pago y cerrar mesa</button>
                         </form>
                     @endif
                     <form method="POST" action="{{ route('admin.tables.destroy', $table) }}">

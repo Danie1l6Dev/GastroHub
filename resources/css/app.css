@@ -6,9 +6,36 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-brand-red: #CD0508;
+    --color-brand-red-dark: #9F0406;
+    --color-brand-red-soft: #FBE6E6;
+    --color-brand-brown: #B05328;
+    --color-brand-brown-dark: #743417;
+    --color-brand-brown-soft: #F7E8DF;
+    --color-brand-orange: #FEAE0D;
+    --color-brand-orange-dark: #D98700;
+    --color-brand-orange-soft: #FFF3D6;
+    --color-brand-white: #F5F5F5;
+    --color-brand-ink: #000000;
+    --color-brand-stone: #EFEAE6;
 }
 
 @layer base {
+    :root {
+        --brand-red: #CD0508;
+        --brand-red-dark: #9F0406;
+        --brand-red-soft: #FBE6E6;
+        --brand-brown: #B05328;
+        --brand-brown-dark: #743417;
+        --brand-brown-soft: #F7E8DF;
+        --brand-orange: #FEAE0D;
+        --brand-orange-dark: #D98700;
+        --brand-orange-soft: #FFF3D6;
+        --brand-white: #F5F5F5;
+        --brand-black: #000000;
+        --brand-stone: #EFEAE6;
+    }
+
     html {
         scroll-behavior: smooth;
     }
@@ -19,30 +46,30 @@
     }
 
     :focus-visible {
-        outline: 3px solid rgb(16 185 129 / 0.28);
+        outline: 3px solid rgb(254 174 13 / 0.42);
         outline-offset: 2px;
     }
 }
 
 @layer components {
     .gh-surface {
-        @apply rounded-2xl border border-zinc-200/80 bg-white shadow-sm shadow-zinc-950/[0.04];
+        @apply rounded-2xl border border-brand-brown/15 bg-white shadow-sm shadow-brand-ink/[0.04];
     }
 
     .gh-panel {
-        @apply rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm shadow-zinc-950/[0.04] sm:p-5;
+        @apply rounded-2xl border border-brand-brown/15 bg-white p-4 shadow-sm shadow-brand-ink/[0.04] sm:p-5;
     }
 
     .gh-muted-panel {
-        @apply rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-5;
+        @apply rounded-2xl border border-brand-brown/15 bg-brand-white p-5;
     }
 
     .gh-page-kicker {
-        @apply text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700;
+        @apply text-xs font-semibold uppercase tracking-[0.18em] text-brand-red;
     }
 
     .gh-page-title {
-        @apply mt-2 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl;
+        @apply mt-2 text-3xl font-semibold tracking-tight text-brand-ink sm:text-4xl;
     }
 
     .gh-page-copy {
@@ -54,31 +81,39 @@
     }
 
     .gh-btn-primary {
-        @apply bg-zinc-950 text-white shadow-sm shadow-zinc-950/10 hover:bg-zinc-800;
+        @apply bg-brand-red text-white shadow-sm shadow-brand-red/20 hover:bg-brand-red-dark focus-visible:outline-brand-orange;
     }
 
     .gh-btn-secondary {
-        @apply border border-zinc-200 bg-white text-zinc-900 shadow-sm shadow-zinc-950/[0.03] hover:bg-zinc-50;
+        @apply border border-brand-ink bg-brand-ink text-white shadow-sm shadow-brand-ink/[0.08] hover:border-brand-brown-dark hover:bg-brand-brown-dark;
+    }
+
+    .gh-btn-accent {
+        @apply bg-brand-orange text-brand-ink shadow-sm shadow-brand-orange/20 hover:bg-brand-orange-dark;
+    }
+
+    .gh-btn-outline {
+        @apply border border-brand-red bg-transparent text-brand-red shadow-sm shadow-brand-red/[0.04] hover:bg-brand-red-soft;
     }
 
     .gh-btn-danger {
-        @apply border border-red-200 bg-white text-red-700 hover:bg-red-50;
+        @apply border border-brand-red/40 bg-white text-brand-red hover:bg-brand-red-soft;
     }
 
     .gh-field {
-        @apply mt-1 min-h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-base text-zinc-950 transition focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 sm:text-sm;
+        @apply mt-1 min-h-11 w-full rounded-xl border border-brand-brown/25 bg-brand-white px-3 py-2 text-base text-brand-ink transition focus:border-brand-red focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand-red/10 sm:text-sm;
     }
 
     .gh-label {
-        @apply text-sm font-medium text-zinc-800;
+        @apply text-sm font-medium text-brand-ink;
     }
 
     .gh-help {
-        @apply mt-1 text-xs leading-5 text-zinc-500;
+        @apply mt-1 text-xs leading-5 text-brand-brown-dark;
     }
 
     .gh-error {
-        @apply mt-1 text-sm text-red-700;
+        @apply mt-1 text-sm text-brand-red;
     }
 
     .gh-badge {
@@ -86,15 +121,15 @@
     }
 
     .gh-card-hover {
-        @apply transition duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-zinc-950/[0.08];
+        @apply transition duration-200 hover:-translate-y-0.5 hover:border-brand-orange/50 hover:shadow-lg hover:shadow-brand-ink/[0.08];
     }
 
     .gh-empty {
-        @apply rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-600;
+        @apply rounded-2xl border border-dashed border-brand-brown/30 bg-white p-8 text-center text-sm text-zinc-600;
     }
 
     .gh-price {
-        @apply font-semibold tabular-nums tracking-tight text-zinc-950;
+        @apply font-semibold tabular-nums tracking-tight text-brand-red;
     }
 
     .gh-reveal {
@@ -102,7 +137,7 @@
     }
 
     .gh-toast {
-        @apply fixed inset-x-4 top-4 z-50 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-950 shadow-lg shadow-emerald-950/10 sm:left-auto sm:max-w-sm;
+        @apply fixed inset-x-4 top-4 z-50 rounded-2xl border border-brand-brown/20 bg-brand-white px-4 py-3 text-sm font-medium text-brand-ink shadow-lg shadow-brand-ink/10 sm:left-auto sm:max-w-sm;
     }
 
     .gh-safe-bottom {
@@ -110,7 +145,7 @@
     }
 
     .gh-mobile-bottom-bar {
-        @apply fixed inset-x-0 bottom-0 z-40 border-t border-zinc-200/80 bg-white/95 px-4 pt-3 shadow-2xl shadow-zinc-950/15 backdrop-blur-xl lg:hidden;
+        @apply fixed inset-x-0 bottom-0 z-40 border-t border-brand-brown/15 bg-white/95 px-4 pt-3 shadow-2xl shadow-brand-ink/15 backdrop-blur-xl lg:hidden;
         padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
     }
 
@@ -119,23 +154,23 @@
     }
 
     .gh-mobile-action-active {
-        @apply bg-zinc-950 text-white shadow-sm shadow-zinc-950/10;
+        @apply bg-brand-red text-white shadow-sm shadow-brand-red/20;
     }
 
     .gh-touch-card {
-        @apply rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-sm shadow-zinc-950/[0.04];
+        @apply rounded-2xl border border-brand-brown/15 bg-white p-4 shadow-sm shadow-brand-ink/[0.04];
     }
 
     .gh-step-chip {
-        @apply inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-600 shadow-sm shadow-zinc-950/[0.03];
+        @apply inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-brand-brown/20 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm shadow-brand-ink/[0.03];
     }
 
     .gh-step-chip-active {
-        @apply border-zinc-950 bg-zinc-950 text-white;
+        @apply border-brand-red bg-brand-red text-white;
     }
 
     .gh-module-sticky {
-        @apply sticky z-30 rounded-2xl border border-zinc-200/80 bg-white/95 p-3 shadow-xl shadow-zinc-950/10 backdrop-blur-xl;
+        @apply sticky z-30 rounded-2xl border border-brand-brown/15 bg-white/95 p-3 shadow-xl shadow-brand-ink/10 backdrop-blur-xl;
         bottom: max(1rem, env(safe-area-inset-bottom));
     }
 

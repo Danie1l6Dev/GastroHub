@@ -42,12 +42,12 @@
 
             <div class="grid gap-3 sm:grid-cols-2">
                 <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
-                    <input type="checkbox" name="is_available" value="1" @checked(old('is_available', $product->is_available ?? true)) class="rounded border-zinc-300 text-emerald-600">
+                    <input type="checkbox" name="is_available" value="1" @checked(old('is_available', $product->is_available ?? true)) class="rounded border-zinc-300 text-brand-red">
                     Disponible para pedir
                 </label>
 
                 <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
-                    <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured ?? false)) class="rounded border-zinc-300 text-amber-600">
+                    <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured ?? false)) class="rounded border-zinc-300 text-brand-orange">
                     Mostrar como destacado
                 </label>
             </div>

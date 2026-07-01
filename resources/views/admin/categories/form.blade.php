@@ -21,7 +21,7 @@
         <x-form-input label="Orden" name="sort_order" type="number" min="0" :value="$category->sort_order ?? $category->position ?? 0" required />
 
         <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
-            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $category->is_active ?? true)) class="rounded border-zinc-300 text-emerald-600">
+            <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $category->is_active ?? true)) class="rounded border-zinc-300 text-brand-red">
             Categoria visible en el menu publico
         </label>
 

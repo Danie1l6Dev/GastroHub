@@ -27,7 +27,7 @@
                 <x-form-input label="Nombre" name="name" :value="$setting->name" required />
                 <x-form-textarea label="Descripcion" name="description" :value="$setting->description" rows="5" />
                 <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
-                    <input type="checkbox" name="is_open" value="1" @checked(old('is_open', $setting->is_open)) class="rounded border-zinc-300 text-emerald-600">
+                    <input type="checkbox" name="is_open" value="1" @checked(old('is_open', $setting->is_open)) class="rounded border-zinc-300 text-brand-red">
                     Restaurante abierto
                 </label>
             </section>
@@ -94,8 +94,10 @@
             <section class="gh-panel">
                 <p class="text-sm font-semibold">Paleta</p>
                 <div class="mt-4 grid grid-cols-2 gap-3">
-                    <div class="rounded-2xl p-4 text-sm font-semibold text-white" style="background-color: {{ $setting->safePrimaryColor() }};">Principal</div>
-                    <div class="rounded-2xl p-4 text-sm font-semibold text-white" style="background-color: {{ $setting->safeSecondaryColor() }};">Secundario</div>
+                    <div class="rounded-2xl bg-brand-red p-4 text-sm font-semibold text-white">Rojo principal</div>
+                    <div class="rounded-2xl bg-brand-orange p-4 text-sm font-semibold text-brand-ink">Naranja acento</div>
+                    <div class="rounded-2xl bg-brand-brown p-4 text-sm font-semibold text-white">Marron apoyo</div>
+                    <div class="rounded-2xl bg-brand-ink p-4 text-sm font-semibold text-white">Negro contraste</div>
                 </div>
             </section>
         </aside>

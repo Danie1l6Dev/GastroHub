@@ -2,11 +2,12 @@
 
 @php
     $classes = [
-        'success' => 'border-emerald-200 bg-emerald-50 text-emerald-900',
-        'error' => 'border-red-200 bg-red-50 text-red-900',
-    ][$type] ?? 'border-zinc-200 bg-white text-zinc-900';
+        'success' => 'border-brand-ink/15 bg-brand-white text-brand-ink',
+        'error' => 'border-brand-red/25 bg-brand-red-soft text-brand-red',
+        'warning' => 'border-brand-orange/40 bg-brand-orange-soft text-brand-ink',
+    ][$type] ?? 'border-brand-brown/15 bg-white text-brand-ink';
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-md border px-4 py-3 text-sm '.$classes]) }}>
+<div {{ $attributes->merge(['class' => 'rounded-xl border px-4 py-3 text-sm '.$classes]) }}>
     {{ $slot }}
 </div>

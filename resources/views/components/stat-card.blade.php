@@ -2,19 +2,20 @@
 
 @php
     $toneClasses = [
-        'neutral' => 'bg-zinc-100 text-zinc-700',
-        'success' => 'bg-emerald-100 text-emerald-800',
-        'warning' => 'bg-amber-100 text-amber-900',
-        'info' => 'bg-sky-100 text-sky-800',
-        'dark' => 'bg-zinc-950 text-white',
-    ][$tone] ?? 'bg-zinc-100 text-zinc-700';
+        'neutral' => 'bg-brand-white text-brand-ink ring-1 ring-brand-brown/15',
+        'success' => 'bg-brand-brown-soft text-brand-brown-dark',
+        'warning' => 'bg-brand-orange-soft text-brand-ink',
+        'info' => 'bg-brand-red-soft text-brand-red',
+        'dark' => 'bg-brand-ink text-white',
+    ][$tone] ?? 'bg-brand-white text-brand-ink ring-1 ring-brand-brown/15';
 @endphp
 
-<div {{ $attributes->merge(['class' => 'gh-panel gh-card-hover']) }}>
+<div {{ $attributes->merge(['class' => 'gh-panel gh-card-hover relative overflow-hidden']) }}>
+    <span class="absolute inset-x-0 top-0 h-1 bg-brand-red"></span>
     <div class="flex items-start justify-between gap-3">
         <div>
             <p class="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">{{ $label }}</p>
-            <p class="mt-3 text-3xl font-semibold tabular-nums text-zinc-950">{{ $value }}</p>
+            <p class="mt-3 text-3xl font-semibold tabular-nums text-brand-ink">{{ $value }}</p>
         </div>
         <span class="flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold {{ $toneClasses }}">
             {{ mb_substr($label, 0, 1) }}

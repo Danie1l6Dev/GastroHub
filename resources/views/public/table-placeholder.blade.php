@@ -17,11 +17,11 @@
         data-initial-guest-id="{{ $guestId }}"
         data-initial-guest-token="{{ $guestToken }}"
     >
-        <div class="mb-4 overflow-hidden rounded-3xl bg-zinc-950 p-4 text-white shadow-xl shadow-zinc-950/10 sm:mb-6 sm:p-7">
+        <div class="mb-4 overflow-hidden rounded-3xl bg-brand-ink p-4 text-white shadow-xl shadow-brand-ink/10 sm:mb-6 sm:p-7">
             <h1 class="text-3xl font-semibold tracking-tight sm:text-5xl">{{ $table->name }}</h1>
         </div>
 
-        <div data-error class="mb-4 hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900"></div>
+        <div data-error class="mb-4 hidden rounded-2xl border border-brand-red/25 bg-brand-red-soft px-4 py-3 text-sm text-brand-red"></div>
 
         <div data-mobile-progress class="mb-4 hidden overflow-x-auto" aria-label="Progreso del pedido">
             <div class="flex w-max min-w-full gap-2 sm:grid sm:w-full sm:grid-cols-5">
@@ -33,10 +33,10 @@
             </div>
         </div>
 
-        <section data-joint-locked-panel class="mb-5 hidden rounded-md border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700">Pago en conjunto activo</p>
-            <h2 class="mt-2 text-2xl font-semibold text-amber-950">Puedes ver el menu de esta mesa</h2>
-            <p class="mt-2 text-sm leading-6 text-amber-900">
+        <section data-joint-locked-panel class="mb-5 hidden rounded-2xl border border-brand-orange/40 bg-brand-orange-soft p-4 shadow-sm sm:p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-brand-brown-dark">Pago en conjunto activo</p>
+            <h2 class="mt-2 text-2xl font-semibold text-brand-ink">Puedes ver el menu de esta mesa</h2>
+            <p class="mt-2 text-sm leading-6 text-brand-brown-dark">
                 Dile a
                 <span data-joint-owner class="font-semibold">la persona encargada</span>
                 que pida lo que quieres.
@@ -44,11 +44,11 @@
         </section>
 
         <section data-account-mode-panel class="mb-5 hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">Antes de pedir</p>
+            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-brand-red">Antes de pedir</p>
             <h2 class="mt-2 text-2xl font-semibold text-zinc-950">Como van a pagar?</h2>
             <p class="mt-2 text-sm leading-6 text-zinc-600">Elige una opcion para esta cuenta. Si regeneras el QR, la mesa vuelve a empezar.</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                <button type="button" data-account-mode="joint" class="min-h-28 rounded-2xl border border-zinc-200 bg-zinc-950 p-4 text-left text-white transition hover:bg-zinc-800 active:scale-[0.99]">
+                <button type="button" data-account-mode="joint" class="min-h-28 rounded-2xl border border-brand-ink bg-brand-ink p-4 text-left text-white transition hover:bg-brand-brown-dark active:scale-[0.99]">
                     <span class="block text-base font-semibold">Pago en conjunto</span>
                     <span class="mt-1 block text-sm leading-5 text-zinc-300">Una sola persona toma el pedido de toda la mesa.</span>
                 </button>
@@ -64,7 +64,7 @@
                 <section id="alias" data-table-panel data-module="alias" class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-5">
                     <div class="flex items-center justify-between gap-3">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Paso 1</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-red">Paso 1</p>
                             <h2 class="mt-1 text-lg font-semibold text-zinc-950">Tu alias</h2>
                         </div>
                         <span data-account-mode-badge class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600"></span>
@@ -72,21 +72,21 @@
                     <form data-alias-form class="mt-4 space-y-3">
                         <div>
                             <label class="text-sm font-medium text-zinc-800" for="guest_alias">Nombre o alias</label>
-                            <input id="guest_alias" name="alias" type="text" maxlength="80" value="{{ $alias }}" placeholder="Ej. Laura" autocomplete="nickname" enterkeyhint="done" class="mt-1 min-h-12 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2 text-base outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100">
+                            <input id="guest_alias" name="alias" type="text" maxlength="80" value="{{ $alias }}" placeholder="Ej. Laura" autocomplete="nickname" enterkeyhint="done" class="mt-1 min-h-12 w-full rounded-xl border border-brand-brown/25 bg-brand-white px-3 py-2 text-base outline-none transition focus:border-brand-red focus:bg-white focus:ring-4 focus:ring-brand-red/10">
                             <p class="mt-2 text-xs leading-5 text-zinc-500">Solo necesitamos un nombre para asociar tu seleccion dentro de esta mesa.</p>
                         </div>
-                        <button class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98]">Confirmar alias</button>
+                        <button class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark active:scale-[0.98]">Confirmar alias</button>
                     </form>
-                    <p data-join-locked class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950">
+                    <p data-join-locked class="mt-4 hidden rounded-xl border border-brand-brown/20 bg-brand-brown-soft px-3 py-2 text-sm font-medium text-brand-brown-dark">
                         El pedido ya fue confirmado. No se pueden agregar mas personas a esta mesa.
                     </p>
-                    <div data-current-guest class="mt-4 hidden rounded-md border border-emerald-200 bg-emerald-50 p-3">
-                        <p class="text-sm text-emerald-900">Ingresaste como</p>
-                        <p data-current-alias class="mt-1 text-lg font-semibold text-emerald-950"></p>
+                    <div data-current-guest class="mt-4 hidden rounded-xl border border-brand-brown/20 bg-brand-brown-soft p-3">
+                        <p class="text-sm text-brand-brown-dark">Ingresaste como</p>
+                        <p data-current-alias class="mt-1 text-lg font-semibold text-brand-ink"></p>
                     </div>
                 </section>
 
-                <section data-table-panel data-module="people" class="rounded-md border border-zinc-200 bg-zinc-950 p-4 text-white shadow-sm sm:p-5 lg:hidden">
+                <section data-table-panel data-module="people" class="rounded-2xl border border-brand-ink bg-brand-ink p-4 text-white shadow-sm sm:p-5 lg:hidden">
                     <p class="text-sm text-zinc-300">Total de la mesa</p>
                     <p data-table-total-mobile class="mt-1 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
@@ -99,7 +99,7 @@
                     <div data-guests class="mt-4 space-y-3"></div>
                 </section>
 
-                <section data-table-panel data-module="people" class="hidden rounded-md border border-zinc-200 bg-zinc-950 p-5 text-white shadow-sm lg:block">
+                <section data-table-panel data-module="people" class="hidden rounded-2xl border border-brand-ink bg-brand-ink p-5 text-white shadow-sm lg:block">
                     <p class="text-sm text-zinc-300">Total de la mesa</p>
                     <p data-table-total class="mt-2 text-3xl font-semibold tabular-nums">$0</p>
                 </section>
@@ -124,7 +124,7 @@
                         <span data-ready-summary class="rounded-md bg-zinc-100 px-2 py-1 text-xs font-semibold text-zinc-600">0/0</span>
                     </div>
                     <p data-confirm-status class="mt-3 text-sm leading-6 text-zinc-600">Agrega tu alias para empezar.</p>
-                    <button type="button" data-confirm-order class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
+                    <button type="button" data-confirm-order class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-md bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
                         Confirmar pedido
                     </button>
                 </section>
@@ -143,7 +143,7 @@
                                 <input data-table-menu-search type="search" placeholder="Buscar plato" enterkeyhint="search" class="gh-field">
                             </label>
                         </div>
-                        <p data-selection-lock class="mt-3 hidden rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-950"></p>
+                    <p data-selection-lock class="mt-3 hidden rounded-xl border border-brand-brown/20 bg-brand-brown-soft px-3 py-2 text-sm font-medium text-brand-brown-dark"></p>
                     </div>
                     <div data-products class="p-4 sm:p-5"></div>
                     <div data-menu-cart-cta class="gh-module-sticky mx-4 mb-4 hidden">
@@ -434,15 +434,15 @@
                 const target = root.querySelector('[data-guests]');
                 target.innerHTML = state.guests.length
                     ? state.guests.map((guest) => `
-                        <div class="rounded-2xl border p-3 ${guest.id === currentGuestId ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}">
+                        <div class="rounded-2xl border p-3 ${guest.id === currentGuestId ? 'border-brand-brown/20 bg-brand-brown-soft' : 'border-zinc-200 bg-white'}">
                             <div class="flex items-center justify-between gap-3">
                                 <div class="min-w-0">
                                     <p class="truncate font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</p>
-                                    ${guest.is_alias_duplicate ? '<p class="mt-1 text-[11px] font-semibold text-amber-700">Alias repetido</p>' : ''}
+                                    ${guest.is_alias_duplicate ? '<p class="mt-1 text-[11px] font-semibold text-brand-orange-dark">Alias repetido</p>' : ''}
                                 </div>
                                 <div class="shrink-0 text-right">
                                     <p class="text-sm font-semibold tabular-nums">${guest.subtotal_formatted}</p>
-                                    <p class="mt-1 text-[11px] font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Listo' : 'Pendiente'}</p>
+                                    <p class="mt-1 text-[11px] font-semibold ${guest.is_ready ? 'text-brand-ink' : 'text-brand-orange-dark'}">${guest.is_ready ? 'Listo' : 'Pendiente'}</p>
                                 </div>
                             </div>
                             <div class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -450,7 +450,7 @@
                                 <button
                                     type="button"
                                     data-select-guest="${guest.guest_token}"
-                                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] sm:w-auto ${guest.id === currentGuestId ? 'border-emerald-200 bg-white text-emerald-950' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
+                                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border px-3 py-2 text-xs font-semibold transition active:scale-[0.98] sm:w-auto ${guest.id === currentGuestId ? 'border-brand-brown/20 bg-white text-brand-ink' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100'}"
                                 >
                                     ${guest.id === currentGuestId ? 'Seleccionado' : 'Seleccionar'}
                                 </button>
@@ -523,7 +523,7 @@
                                 <button
                                     type="button"
                                     data-category="${category.id}"
-                                    class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition active:scale-[0.98] ${category.id === selectedCategoryId ? 'bg-zinc-950 text-white' : 'text-zinc-700 hover:bg-zinc-50'}"
+                                    class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition active:scale-[0.98] ${category.id === selectedCategoryId ? 'bg-brand-red text-white' : 'text-zinc-700 hover:bg-brand-orange-soft'}"
                                     role="option"
                                     aria-selected="${category.id === selectedCategoryId ? 'true' : 'false'}"
                                 >
@@ -568,7 +568,7 @@
                 const noteControl = selected > 0 && canEditCurrentSelection()
                     ? `<label class="mt-3 block">
                             <span class="sr-only">Nota para ${escapeHtml(product.name)}</span>
-                            <input data-product-note="${product.id}" maxlength="160" value="${escapeHtml(currentItem?.notes || '')}" placeholder="Nota opcional para cocina" enterkeyhint="done" class="min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 sm:text-sm">
+                            <input data-product-note="${product.id}" maxlength="160" value="${escapeHtml(currentItem?.notes || '')}" placeholder="Nota opcional para cocina" enterkeyhint="done" class="min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none transition focus:border-brand-red focus:bg-white focus:ring-2 focus:ring-brand-red/10 sm:text-sm">
                         </label>`
                     : '';
 
@@ -590,7 +590,7 @@
                                         ? `<div class="relative z-10 flex w-full items-center justify-between gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 sm:w-auto">
                                             <button aria-label="Quitar ${escapeHtml(product.name)}" data-delta="-1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-200 bg-white text-lg font-semibold text-zinc-800 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() || selected === 0 ? 'disabled' : ''}>-</button>
                                             <span class="pointer-events-none min-w-8 text-center text-sm font-semibold tabular-nums text-zinc-950">${selected}</span>
-                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() ? 'disabled' : ''}>+</button>
+                                            <button aria-label="Agregar ${escapeHtml(product.name)}" data-delta="1" data-product="${product.id}" class="relative z-10 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-red text-lg font-semibold text-white transition hover:bg-brand-red-dark disabled:cursor-not-allowed disabled:opacity-35" ${!canEditCurrentSelection() ? 'disabled' : ''}>+</button>
                                         </div>`
                                         : '<span class="rounded-md bg-zinc-100 px-3 py-2 text-xs font-semibold text-zinc-600">No disponible</span>'
                                     }
@@ -623,7 +623,7 @@
                                             <p class="min-w-0">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                             <p class="font-medium tabular-nums">${item.subtotal_formatted}</p>
                                         </div>
-                                        ${guest.id === currentGuestId && !guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" enterkeyhint="done" class="mt-2 min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 sm:text-sm">` : (item.notes ? `<p class="mt-1 text-xs text-zinc-500">Nota: ${escapeHtml(item.notes)}</p>` : '')}
+                                        ${guest.id === currentGuestId && !guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" enterkeyhint="done" class="mt-2 min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none focus:border-brand-red focus:bg-white focus:ring-2 focus:ring-brand-red/10 sm:text-sm">` : (item.notes ? `<p class="mt-1 text-xs text-zinc-500">Nota: ${escapeHtml(item.notes)}</p>` : '')}
                                     </div>
                                 `).join('') : '<p class="py-2 text-sm text-zinc-500">Sin platos seleccionados.</p>'}
                             </div>
@@ -652,7 +652,7 @@
                                                                 <p class="min-w-0 font-medium text-zinc-800">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                                                 <p class="shrink-0 text-xs font-semibold tabular-nums text-zinc-500">${item.subtotal_formatted}</p>
                                                             </div>
-                                                            ${item.notes ? `<p class="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">Nota: ${escapeHtml(item.notes)}</p>` : ''}
+                                                            ${item.notes ? `<p class="mt-1 rounded-md border border-brand-orange/40 bg-brand-orange-soft px-2 py-1 text-xs text-brand-ink">Nota: ${escapeHtml(item.notes)}</p>` : ''}
                                                         </div>
                                                     `).join('')}
                                                 </div>
@@ -661,7 +661,7 @@
                                     }).join('') : '<p class="text-sm text-zinc-500">Aun no ha enviado pedidos.</p>'}
                                 </div>
                             </div>
-                            <p class="mt-3 text-xs font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Preseleccion confirmada' : 'Preseleccion pendiente'}</p>
+                            <p class="mt-3 text-xs font-semibold ${guest.is_ready ? 'text-brand-ink' : 'text-brand-orange-dark'}">${guest.is_ready ? 'Preseleccion confirmada' : 'Preseleccion pendiente'}</p>
                         </section>
                     `;
 
@@ -693,9 +693,9 @@
                                                         <div class="inline-flex min-h-11 items-center rounded-xl border border-zinc-200 bg-zinc-50 p-1">
                                                             <button type="button" aria-label="Quitar una unidad de ${escapeHtml(item.name)}" data-product="${item.product_id}" data-delta="-1" class="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-lg font-semibold text-zinc-800 shadow-sm transition hover:bg-zinc-100 active:scale-[0.97]">-</button>
                                                             <span class="min-w-10 px-2 text-center text-sm font-semibold tabular-nums text-zinc-950">${item.quantity}</span>
-                                                            <button type="button" aria-label="Agregar una unidad de ${escapeHtml(item.name)}" data-product="${item.product_id}" data-delta="1" class="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-950 text-lg font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.97]">+</button>
+                                                            <button type="button" aria-label="Agregar una unidad de ${escapeHtml(item.name)}" data-product="${item.product_id}" data-delta="1" class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-red text-lg font-semibold text-white transition hover:bg-brand-red-dark active:scale-[0.97]">+</button>
                                                         </div>
-                                                        <button type="button" data-product="${item.product_id}" data-delta="-${item.quantity}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 active:scale-[0.98]">
+                                                        <button type="button" data-product="${item.product_id}" data-delta="-${item.quantity}" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-brand-red/25 bg-brand-red-soft px-3 py-2 text-xs font-semibold text-brand-red transition hover:bg-brand-red-soft active:scale-[0.98]">
                                                             Eliminar
                                                         </button>
                                                     </div>
@@ -703,12 +703,12 @@
                                             </div>
                                             <p class="shrink-0 font-semibold tabular-nums text-zinc-950">${item.subtotal_formatted}</p>
                                         </div>
-                                        ${!guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" enterkeyhint="done" class="mt-2 min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100 sm:text-sm">` : ''}
+                                        ${!guest.is_ready ? `<input data-cart-note="${item.product_id}" maxlength="160" value="${escapeHtml(item.notes || '')}" placeholder="Nota para este plato" enterkeyhint="done" class="mt-2 min-h-11 w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-base outline-none focus:border-brand-red focus:bg-white focus:ring-2 focus:ring-brand-red/10 sm:text-sm">` : ''}
                                     </div>
                                 `).join('') : '<p class="py-3 text-sm text-zinc-500">Tu carrito esta vacio. Vuelve al menu para agregar platos.</p>'}
                             </div>
                             ${selectionItems.length && !guest.is_ready ? `
-                                <button type="button" data-cart-ready-action class="mt-4 hidden min-h-12 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 lg:inline-flex">
+                                <button type="button" data-cart-ready-action class="mt-4 hidden min-h-12 w-full items-center justify-center rounded-xl bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 lg:inline-flex">
                                     Confirmar preseleccion
                                 </button>
                             ` : ''}
@@ -734,7 +734,7 @@
                                 </div>
                                 <div class="mt-3 grid grid-cols-3 gap-1 rounded-xl bg-zinc-50 p-1 text-[11px] font-semibold text-zinc-500">
                                     ${['new', 'preparing', 'delivered'].map((step) => `
-                                        <span class="rounded-lg px-2 py-1 text-center ${orderStatusPosition(order.status) >= orderStatusPosition(step) ? 'bg-white text-emerald-700 shadow-sm' : ''}">
+                                        <span class="rounded-lg px-2 py-1 text-center ${orderStatusPosition(order.status) >= orderStatusPosition(step) ? 'bg-white text-brand-ink shadow-sm' : ''}">
                                             ${step === 'new' ? 'Recibido' : step === 'preparing' ? 'Cocina' : 'Entregado'}
                                         </span>
                                     `).join('')}
@@ -747,7 +747,7 @@
                                             <p class="min-w-0 font-medium text-zinc-800">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                             <p class="shrink-0 text-xs font-semibold tabular-nums text-zinc-500">${item.subtotal_formatted}</p>
                                         </div>
-                                        ${item.notes ? `<p class="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">Nota: ${escapeHtml(item.notes)}</p>` : ''}
+                                        ${item.notes ? `<p class="mt-1 rounded-md border border-brand-orange/40 bg-brand-orange-soft px-2 py-1 text-xs text-brand-ink">Nota: ${escapeHtml(item.notes)}</p>` : ''}
                                     </div>
                                 `).join('')}
                             </div>
@@ -760,7 +760,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-zinc-950">${escapeHtml(guest.display_alias || guest.alias)}</p>
-                                <p class="mt-1 text-xs font-semibold ${guest.is_ready ? 'text-emerald-700' : 'text-amber-700'}">${guest.is_ready ? 'Preseleccion confirmada' : 'Todavia eligiendo'}</p>
+                                <p class="mt-1 text-xs font-semibold ${guest.is_ready ? 'text-brand-ink' : 'text-brand-orange-dark'}">${guest.is_ready ? 'Preseleccion confirmada' : 'Todavia eligiendo'}</p>
                             </div>
                             <p class="shrink-0 text-sm font-semibold tabular-nums text-zinc-950">${guest.subtotal_formatted}</p>
                         </div>
@@ -795,21 +795,21 @@
                             : 'Agrega un alias para empezar a pedir.';
 
                 cartTarget.innerHTML = `
-                    <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-950">
+                    <div class="rounded-2xl border border-brand-brown/20 bg-brand-brown-soft p-3 text-sm leading-6 text-brand-ink">
                         ${escapeHtml(cartMessage)}
                     </div>
                     ${current
                         ? cartCard(current)
                         : '<p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-500">Ingresa tu alias para crear tu carrito.</p>'}
                     ${showReadyActions ? `
-                        <section class="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                            <p class="text-sm font-semibold text-emerald-950">Preseleccion confirmada.</p>
+                        <section class="rounded-2xl border border-brand-brown/20 bg-brand-brown-soft p-4">
+                            <p class="text-sm font-semibold text-brand-ink">Preseleccion confirmada.</p>
                             <div class="mt-3 flex flex-col gap-2 sm:flex-row">
-                                <button type="button" data-cart-ready-action class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
+                                <button type="button" data-cart-ready-action class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-red px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-red-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500">
                                     Editar preseleccion
                                 </button>
                                 ${canOfferAddGuest ? `
-                                    <button type="button" data-release-guest class="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-100 active:scale-[0.98]">
+                                    <button type="button" data-release-guest class="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-brand-brown/20 bg-white px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-brown-soft active:scale-[0.98]">
                                         Agregar otra persona
                                     </button>
                                 ` : ''}
@@ -852,7 +852,7 @@
                                         <p class="mt-1 text-xs text-zinc-500">${hasOrders ? `${guest.orders.length} pedido${guest.orders.length === 1 ? '' : 's'} enviado${guest.orders.length === 1 ? '' : 's'}` : 'Aun no tiene pedidos enviados.'}</p>
                                     </div>
                                     <div class="shrink-0 text-right">
-                                        <span class="rounded-full border px-2.5 py-1 text-[11px] font-semibold ${hasActiveOrder ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}">${escapeHtml(label)}</span>
+                                        <span class="rounded-full border px-2.5 py-1 text-[11px] font-semibold ${hasActiveOrder ? 'border-brand-red/25 bg-brand-red-soft text-brand-red' : 'border-brand-brown/20 bg-brand-brown-soft text-brand-brown-dark'}">${escapeHtml(label)}</span>
                                         <p class="mt-2 text-sm font-semibold tabular-nums text-zinc-950">${money(total)}</p>
                                     </div>
                                 </div>
@@ -871,7 +871,7 @@
                                                 <div>
                                                     <div class="flex flex-wrap items-center gap-2">
                                                         <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-500">Pedido #${order.id}</p>
-                                                        ${order.is_additional ? '<span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-900">Adicional</span>' : '<span class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-600">Pedido inicial</span>'}
+                                                        ${order.is_additional ? '<span class="rounded-full border border-brand-orange/40 bg-brand-orange-soft px-2.5 py-1 text-[11px] font-semibold text-brand-ink">Adicional</span>' : '<span class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-zinc-600">Pedido inicial</span>'}
                                                         <span class="rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.classes}">${escapeHtml(status.label)}</span>
                                                     </div>
                                                     <p class="mt-2 text-xs leading-5 text-zinc-500">${escapeHtml(status.hint)}</p>
@@ -885,7 +885,7 @@
                                                             <p class="min-w-0 font-medium text-zinc-800">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                                             <p class="shrink-0 text-xs font-semibold tabular-nums text-zinc-500">${item.subtotal_formatted}</p>
                                                         </div>
-                                                        ${item.notes ? `<p class="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">Nota: ${escapeHtml(item.notes)}</p>` : ''}
+                                                        ${item.notes ? `<p class="mt-1 rounded-md border border-brand-orange/40 bg-brand-orange-soft px-2 py-1 text-xs text-brand-ink">Nota: ${escapeHtml(item.notes)}</p>` : ''}
                                                     </div>
                                                 `).join('')}
                                             </div>
@@ -940,7 +940,7 @@
                                                     type="button"
                                                     data-extra-guest-option="${guest.guest_token}"
                                                     data-extra-guest-label="${escapeHtml(guest.display_alias || guest.alias)}"
-                                                    class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition active:scale-[0.98] ${selectedExtraGuest?.guest_token === guest.guest_token ? 'bg-zinc-950 text-white' : 'text-zinc-700 hover:bg-zinc-50'}"
+                                                    class="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition active:scale-[0.98] ${selectedExtraGuest?.guest_token === guest.guest_token ? 'bg-brand-ink text-white' : 'text-zinc-700 hover:bg-zinc-50'}"
                                                     role="option"
                                                     aria-selected="${selectedExtraGuest?.guest_token === guest.guest_token ? 'true' : 'false'}"
                                                 >
@@ -950,7 +950,7 @@
                                             `).join('')}
                                         </div>
                                     </div>
-                                    <button type="button" data-extra-for-selected class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-zinc-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 sm:w-auto" ${guestsWithOrders.length ? '' : 'disabled'}>
+                                    <button type="button" data-extra-for-selected class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-brand-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-brown-dark active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500 sm:w-auto" ${guestsWithOrders.length ? '' : 'disabled'}>
                                         Pedir adicional
                                     </button>
                                 </div>
@@ -982,10 +982,10 @@
                 }
 
                 status.textContent = bill.is_paid ? 'Cerrada' : (bill.payment_ready ? 'Por cobrar' : 'En preparacion');
-                status.className = `rounded-md px-2 py-1 text-xs font-semibold ${bill.is_paid ? 'bg-emerald-100 text-emerald-800' : (bill.payment_ready ? 'bg-amber-100 text-amber-800' : 'bg-sky-100 text-sky-800')}`;
+                status.className = `rounded-md px-2 py-1 text-xs font-semibold ${bill.is_paid ? 'bg-brand-brown-soft text-brand-ink' : (bill.payment_ready ? 'bg-brand-orange-soft text-brand-ink' : 'bg-brand-red-soft text-brand-red')}`;
 
                 summary.innerHTML = `
-                    <div class="rounded-2xl border ${bill.payment_ready || bill.is_paid ? 'border-amber-200 bg-amber-50 text-amber-950' : 'border-sky-200 bg-sky-50 text-sky-950'} p-3 text-sm leading-6">
+                    <div class="rounded-2xl border ${bill.payment_ready || bill.is_paid ? 'border-brand-orange/40 bg-brand-orange-soft text-brand-ink' : 'border-brand-red/25 bg-brand-red-soft text-brand-red'} p-3 text-sm leading-6">
                         ${bill.is_paid
                             ? 'La mesa ya fue cerrada por el restaurante.'
                             : (bill.payment_ready
@@ -999,7 +999,7 @@
                         </div>
                         <div>
                             <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">Pendiente</p>
-                            <p class="mt-1 text-sm font-semibold tabular-nums text-amber-700">${bill.balance_formatted}</p>
+                            <p class="mt-1 text-sm font-semibold tabular-nums text-brand-orange-dark">${bill.balance_formatted}</p>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -1017,7 +1017,7 @@
                                             </div>
                                             <div class="shrink-0 text-right">
                                                 <p class="text-sm font-semibold tabular-nums text-zinc-950">${participantAmount}</p>
-                                                <p class="mt-1 text-xs ${participant.balance === 0 ? 'text-emerald-700' : 'text-amber-700'}">${isJointMode ? 'Cuenta conjunta' : (participant.balance === 0 ? 'Cerrado' : 'Debe pagar')}</p>
+                                                <p class="mt-1 text-xs ${participant.balance === 0 ? 'text-brand-ink' : 'text-brand-orange-dark'}">${isJointMode ? 'Cuenta conjunta' : (participant.balance === 0 ? 'Cerrado' : 'Debe pagar')}</p>
                                             </div>
                                         </div>
                                         <span class="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 transition hover:bg-white active:scale-[0.98]">
@@ -1042,7 +1042,7 @@
                                                                 <p class="min-w-0 font-medium text-zinc-800">${escapeHtml(item.name)} <span class="text-zinc-500">x${item.quantity}</span></p>
                                                                 <p class="shrink-0 text-xs font-semibold tabular-nums text-zinc-500">${item.subtotal_formatted}</p>
                                                             </div>
-                                                            ${item.notes ? `<p class="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-xs text-amber-900">Nota: ${escapeHtml(item.notes)}</p>` : ''}
+                                                            ${item.notes ? `<p class="mt-1 rounded-md border border-brand-orange/40 bg-brand-orange-soft px-2 py-1 text-xs text-brand-ink">Nota: ${escapeHtml(item.notes)}</p>` : ''}
                                                         </div>
                                                     `).join('')}
                                                 </div>
@@ -1054,11 +1054,11 @@
                         }).join('')}
                     </div>
                     ${bill.payments.length ? `
-                        <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
-                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Confirmado por el restaurante</p>
+                        <div class="rounded-2xl border border-brand-brown/20 bg-brand-brown-soft p-3">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink">Confirmado por el restaurante</p>
                             <div class="mt-2 space-y-1">
                                 ${bill.payments.map((payment) => `
-                                    <div class="flex items-center justify-between gap-3 text-xs text-emerald-950">
+                                    <div class="flex items-center justify-between gap-3 text-xs text-brand-ink">
                                         <span>${escapeHtml(payment.type_label)}${payment.guest_alias ? ` - ${escapeHtml(payment.guest_alias)}` : ''}</span>
                                         <span class="font-semibold tabular-nums">${payment.amount_formatted}</span>
                                     </div>
@@ -1150,17 +1150,17 @@
                 new: {
                     label: label || 'Nuevo',
                     hint: 'Recibido por el restaurante.',
-                    classes: 'border-amber-200 bg-amber-50 text-amber-900',
+                    classes: 'border-brand-orange/40 bg-brand-orange-soft text-brand-ink',
                 },
                 preparing: {
                     label: label || 'Preparando',
                     hint: 'La cocina ya esta trabajando en este pedido.',
-                    classes: 'border-sky-200 bg-sky-50 text-sky-900',
+                    classes: 'border-brand-red/25 bg-brand-red-soft text-brand-red',
                 },
                 delivered: {
                     label: label || 'Entregado',
                     hint: 'Este pedido ya fue entregado en la mesa.',
-                    classes: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+                    classes: 'border-brand-brown/20 bg-brand-brown-soft text-brand-brown-dark',
                 },
                 cancelled: {
                     label: label || 'Cancelado',
@@ -1528,7 +1528,7 @@
                     select.querySelectorAll('[data-extra-guest-option]').forEach((option) => {
                         const isSelected = option === extraGuestOption;
                         option.setAttribute('aria-selected', isSelected ? 'true' : 'false');
-                        option.classList.toggle('bg-zinc-950', isSelected);
+                        option.classList.toggle('bg-brand-ink', isSelected);
                         option.classList.toggle('text-white', isSelected);
                         option.classList.toggle('text-zinc-700', !isSelected);
                         option.classList.toggle('hover:bg-zinc-50', !isSelected);

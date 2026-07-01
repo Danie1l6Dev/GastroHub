@@ -52,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         toast.setAttribute('role', 'status');
         toast.innerHTML = `
             <div class="flex items-start gap-3">
-                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">OK</span>
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-red text-xs font-bold text-white">OK</span>
                 <div class="min-w-0 flex-1">${flash.textContent}</div>
-                <button type="button" class="rounded-md px-2 text-emerald-900 hover:bg-emerald-100" aria-label="Cerrar notificacion">x</button>
+                <button type="button" class="rounded-md px-2 text-brand-brown-dark hover:bg-brand-orange-soft" aria-label="Cerrar notificacion">x</button>
             </div>
         `;
 

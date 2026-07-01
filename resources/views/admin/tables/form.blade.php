@@ -32,7 +32,7 @@
             </div>
 
             <label class="flex min-h-14 items-center gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium">
-                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $table->is_active ?? true)) class="rounded border-zinc-300 text-emerald-600">
+                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $table->is_active ?? true)) class="rounded border-zinc-300 text-brand-red">
                 Mesa activa para recibir clientes
             </label>
 

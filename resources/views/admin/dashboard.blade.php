@@ -24,7 +24,7 @@
                     <h2 class="text-lg font-semibold">Pedidos recientes</h2>
                     <p class="mt-1 text-sm text-zinc-500">Ultimos pedidos registrados en mesa.</p>
                 </div>
-                <a href="{{ route('admin.orders.index', ['date' => 'all']) }}" class="text-sm font-semibold text-emerald-700">Todos</a>
+                <a href="{{ route('admin.orders.index', ['date' => 'all']) }}" class="text-sm font-semibold text-brand-red hover:text-brand-red-dark">Todos</a>
             </div>
 
             <div class="mt-5 space-y-3">
@@ -49,9 +49,9 @@
             <p class="mt-1 text-sm text-zinc-500">Disponibilidad operativa por estado.</p>
             <div class="mt-5 space-y-3">
                 @foreach ([
-                    'available' => ['label' => 'Disponibles', 'tone' => 'success'],
-                    'occupied' => ['label' => 'Ocupadas', 'tone' => 'warning'],
-                    'payment_pending' => ['label' => 'Pendiente de pago', 'tone' => 'info'],
+                    'available' => ['label' => 'Disponibles', 'tone' => 'neutral'],
+                    'occupied' => ['label' => 'Ocupadas', 'tone' => 'primary'],
+                    'payment_pending' => ['label' => 'Pendiente de pago', 'tone' => 'accent'],
                 ] as $status => $meta)
                     <div class="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white p-4">
                         <x-badge :tone="$meta['tone']">{{ $meta['label'] }}</x-badge>

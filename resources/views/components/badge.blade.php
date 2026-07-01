@@ -2,13 +2,16 @@
 
 @php
     $classes = [
-        'neutral' => 'bg-zinc-100 text-zinc-700 ring-zinc-200',
-        'success' => 'bg-emerald-100 text-emerald-800 ring-emerald-200',
-        'warning' => 'bg-amber-100 text-amber-900 ring-amber-200',
-        'danger' => 'bg-red-100 text-red-800 ring-red-200',
-        'info' => 'bg-sky-100 text-sky-800 ring-sky-200',
-        'dark' => 'bg-zinc-950 text-white ring-zinc-950',
-    ][$tone] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-200';
+        'neutral' => 'bg-brand-white text-brand-ink ring-brand-brown/20',
+        'success' => 'bg-brand-white text-brand-ink ring-brand-ink/20',
+        'warning' => 'bg-brand-orange-soft text-brand-ink ring-brand-orange/40',
+        'danger' => 'bg-brand-red-soft text-brand-red ring-brand-red/25',
+        'info' => 'bg-brand-brown-soft text-brand-brown-dark ring-brand-brown/25',
+        'warm' => 'bg-brand-brown text-white ring-brand-brown',
+        'primary' => 'bg-brand-red text-white ring-brand-red',
+        'accent' => 'bg-brand-orange text-brand-ink ring-brand-orange',
+        'dark' => 'bg-brand-ink text-white ring-brand-ink',
+    ][$tone] ?? 'bg-brand-white text-brand-ink ring-brand-brown/20';
 @endphp
 
 <span {{ $attributes->merge(['class' => 'gh-badge '.$classes]) }}>

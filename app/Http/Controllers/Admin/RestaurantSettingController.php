@@ -49,8 +49,8 @@ class RestaurantSettingController extends Controller
                 'name' => 'GastroHub Bistro',
                 'slug' => 'gastrohub-bistro',
                 'description' => 'Cocina casual con sabores frescos y pedidos digitales desde la mesa.',
-                'primary_color' => '#059669',
-                'secondary_color' => '#111827',
+                'primary_color' => '#CD0508',
+                'secondary_color' => '#000000',
                 'is_open' => true,
             ]
         );

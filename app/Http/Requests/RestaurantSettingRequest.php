@@ -32,8 +32,8 @@ class RestaurantSettingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'primary_color.regex' => 'El color principal debe estar en formato hexadecimal, por ejemplo #059669.',
-            'secondary_color.regex' => 'El color secundario debe estar en formato hexadecimal, por ejemplo #111827.',
+            'primary_color.regex' => 'El color principal debe estar en formato hexadecimal, por ejemplo #CD0508.',
+            'secondary_color.regex' => 'El color secundario debe estar en formato hexadecimal, por ejemplo #000000.',
             'logo.image' => 'El logo debe ser una imagen valida.',
             'cover_image.image' => 'La portada debe ser una imagen valida.',
         ];

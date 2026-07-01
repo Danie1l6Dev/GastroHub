@@ -27,7 +27,7 @@
     <div class="-mx-4 mt-6 overflow-x-auto px-4">
         <div class="flex w-max min-w-full gap-2">
         @foreach ($orderStatuses->labels() as $status => $label)
-            <x-badge :tone="['new' => 'warning', 'preparing' => 'info', 'delivered' => 'success', 'cancelled' => 'neutral'][$status] ?? 'neutral'">
+            <x-badge :tone="['new' => 'primary', 'preparing' => 'accent', 'delivered' => 'neutral', 'cancelled' => 'neutral'][$status] ?? 'neutral'">
                 {{ $label }} · {{ (int) ($statusCounts[$status] ?? 0) }}
             </x-badge>
         @endforeach
@@ -143,14 +143,14 @@
                     @foreach ($group['sections'] as $ticket)
                         @php
                             $badgeClasses = [
-                                'new' => 'bg-amber-100 text-amber-900 ring-amber-200',
-                                'preparing' => 'bg-sky-100 text-sky-900 ring-sky-200',
-                                'delivered' => 'bg-emerald-100 text-emerald-900 ring-emerald-200',
+                                'new' => 'bg-brand-red-soft text-brand-red ring-brand-red/25',
+                                'preparing' => 'bg-brand-orange-soft text-brand-ink ring-brand-orange/40',
+                                'delivered' => 'bg-brand-white text-brand-ink ring-brand-ink/15',
                                 'cancelled' => 'bg-zinc-100 text-zinc-600 ring-zinc-200',
                             ][$ticket['status']] ?? 'bg-zinc-100 text-zinc-700 ring-zinc-200';
                             $typeClasses = $ticket['type'] === 'extra'
-                                ? 'border-orange-200 bg-orange-50 text-orange-800'
-                                : 'border-emerald-200 bg-emerald-50 text-emerald-800';
+                                ? 'border-brand-orange/50 bg-brand-orange-soft text-brand-ink'
+                                : 'border-brand-brown/25 bg-brand-brown-soft text-brand-brown-dark';
                         @endphp
 
                         <details class="rounded-2xl border border-zinc-200" @if($ticket['status'] !== 'delivered') open @endif>
@@ -184,7 +184,7 @@
                                                 <p class="shrink-0 text-sm font-semibold tabular-nums text-zinc-900">${{ number_format((int) $item['line_total'], 0, ',', '.') }}</p>
                                             </div>
                                             @if ($item['notes'])
-                                                <p class="mt-2 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-sm text-amber-900">Nota: {{ $item['notes'] }}</p>
+                                                <p class="mt-2 rounded-md border border-brand-orange/40 bg-brand-orange-soft px-2 py-1 text-sm text-brand-ink">Nota: {{ $item['notes'] }}</p>
                                             @endif
                                         </div>
                                     @endforeach

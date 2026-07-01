@@ -54,12 +54,12 @@ class RestaurantSetting extends Model
 
     public function safePrimaryColor(): string
     {
-        return $this->safeColor($this->primary_color, '#059669');
+        return $this->safeColor($this->primary_color, '#CD0508');
     }
 
     public function safeSecondaryColor(): string
     {
-        return $this->safeColor($this->secondary_color, '#111827');
+        return $this->safeColor($this->secondary_color, '#000000');
     }
 
     private function safeColor(?string $color, string $fallback): string
